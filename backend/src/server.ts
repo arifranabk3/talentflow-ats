@@ -1,27 +1,40 @@
-﻿import express, { Request, Response, NextFunction } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
+import { createApp } from './app';
+import { config } from './config/env';
+import { connectDatabase } from './config/database';
+import { logger } from './utils/logger';
 
-const app = express();
-const PORT = process.env.PORT || 8000;
+async function startServer() {
+  try {
+    // Connect to MongoDB Atlas (talentflow database)
+    await connectDatabase();
 
-app.use(helmet());
-app.use(cors());
-app.use(express.json());
+    const app = createApp();
 
-// Health check endpoint
-app.get('/health', (_req: Request, res: Response) => {
-  res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
-});
+    const server = app.listen(config.port, () => {
+      logger.info(
+        { port: config.port, env: config.nodeEnv },
+        `🚀 TALENTFLOW Backend API Server running on port ${config.port}`
+      );
+    });
 
-// Global error handler
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  res.status(500).json({
-    error: {
-      code: 'INTERNAL_SERVER_ERROR',
-      message: err.message || 'An unexpected error occurred.'
-    }
-  });
-});
+    const shutdown = async (signal: string) => {
+      logger.info(`Received ${signal}. Gracefully shutting down...`);
+      server.close(() => {
+        logger.info('HTTP server closed.');
+        process.exit(0);
+      });
+    };
 
-export default app;
+    process.on('SIGTERM', () => shutdown('SIGTERM'));
+    process.on('SIGINT', () => shutdown('SIGINT'));
+  } catch (error: any) {
+    logger.error({ error: error.message }, 'Fatal error during server startup');
+    process.exit(1);
+  }
+}
+
+if (require.main === module) {
+  startServer();
+}
+
+export default startServer;
