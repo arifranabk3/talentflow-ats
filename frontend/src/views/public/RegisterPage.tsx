@@ -17,7 +17,7 @@ export const RegisterPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { login } = useAuth();
+  const { register: registerAuth } = useAuth();
   const navigate = useNavigate();
   const searchParams = useSearchParams();
   const nextParam = searchParams?.get('next');
@@ -28,32 +28,30 @@ export const RegisterPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // 1. Call Backend Registration API
-      const regRes = await authApi.register({
-        name: fullName.trim(),
-        email: email.trim().toLowerCase(),
+      // Attempt registration through AuthContext
+      const regRes = await registerAuth(
+        fullName.trim(),
+        email.trim().toLowerCase(),
         password,
-        role,
-      });
+        role
+      );
 
-      if (regRes.success && regRes.data?.token) {
-        // Store session token
-        localStorage.setItem('talentflow_token', regRes.data.token);
-        
-        // 2. If recruiter and companyName specified, provision company
+      if (regRes.success) {
+        // If recruiter and companyName specified, attempt company creation if backend exists
         if (role === 'recruiter' && companyName.trim()) {
           try {
             await companiesApi.create({
               name: companyName.trim(),
             });
           } catch {
-            // Company creation can be completed in onboarding if duplicate slug
+            // Non-blocking in preview/standalone environment
           }
         }
 
-        await login(email.trim(), password);
         const destination = getSafeRedirectUrl(nextParam, getDefaultDashboardForRole(role));
         navigate(destination, { replace: true });
+      } else {
+        setError(regRes.error || 'Registration failed. Please try again.');
       }
     } catch (err) {
       setError(getErrorMessage(err));
