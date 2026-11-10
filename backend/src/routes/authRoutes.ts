@@ -1,26 +1,46 @@
 import { Router } from 'express';
-import { register, login, logout, getMe } from '../controllers/authController';
+import {
+  register,
+  provisionAdmin,
+  login,
+  refresh,
+  logout,
+  getMe,
+  updateProfile,
+  changePassword,
+  forgotPassword,
+  resetPassword,
+  verifyEmail,
+  deactivateAccount,
+} from '../controllers/authController';
 import { validateRequest } from '../middleware/validate';
-import { registerSchema, loginSchema } from '../validators/authValidator';
+import {
+  registerSchema,
+  adminProvisionSchema,
+  loginSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+  changePasswordSchema,
+  updateProfileSchema,
+  refreshTokenSchema,
+} from '../validators/authValidator';
 import { requireAuth } from '../middleware/auth';
-import rateLimit from 'express-rate-limit';
-
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 30, // 30 requests per window
-  message: {
-    success: false,
-    message: 'Too many authentication attempts. Please try again after 15 minutes.',
-    error: { code: 'RATE_LIMIT_EXCEEDED' },
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+import { loginLimiter, passwordResetLimiter, registrationLimiter } from '../middleware/rateLimiter';
 
 export const authRouter = Router();
 
-authRouter.post('/register', authLimiter, validateRequest(registerSchema), register);
-authRouter.post('/login', authLimiter, validateRequest(loginSchema), login);
-authRouter.post('/logout', logout);
-authRouter.get('/me', requireAuth, getMe);
+// Public Authentication
+authRouter.post('/register', registrationLimiter, validateRequest(registerSchema), register);
+authRouter.post('/provision-admin', validateRequest(adminProvisionSchema), provisionAdmin);
+authRouter.post('/login', loginLimiter, validateRequest(loginSchema), login);
+authRouter.post('/refresh', validateRequest(refreshTokenSchema), refresh);
+authRouter.post('/forgot-password', passwordResetLimiter, validateRequest(forgotPasswordSchema), forgotPassword);
+authRouter.post('/reset-password', passwordResetLimiter, validateRequest(resetPasswordSchema), resetPassword);
+authRouter.get('/verify-email/:token', verifyEmail);
 
+// Authenticated Session & Profile
+authRouter.post('/logout', requireAuth, logout);
+authRouter.get('/me', requireAuth, getMe);
+authRouter.patch('/profile', requireAuth, validateRequest(updateProfileSchema), updateProfile);
+authRouter.patch('/change-password', requireAuth, validateRequest(changePasswordSchema), changePassword);
+authRouter.delete('/me', requireAuth, deactivateAccount);

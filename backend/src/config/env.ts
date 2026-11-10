@@ -9,6 +9,7 @@ export const config = {
   mongodbUri: process.env.MONGODB_URI || '',
   jwtSecret: process.env.JWT_SECRET || 'fallback_development_secret_not_for_prod_1234',
   cookieSecret: process.env.COOKIE_SECRET || 'fallback_cookie_secret_not_for_prod_1234',
+  adminSecret: process.env.ADMIN_PROVISION_SECRET || 'talentflow_admin_provisioning_key_2026_secured',
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
   isProd: process.env.NODE_ENV === 'production',
 };
@@ -16,4 +17,3 @@ export const config = {
 if (!config.mongodbUri) {
   console.warn('[CONFIG WARNING] MONGODB_URI is not set in environment.');
 }
-

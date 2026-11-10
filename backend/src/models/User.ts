@@ -7,6 +7,11 @@ export interface IUser extends Document {
   role: 'candidate' | 'recruiter' | 'admin';
   status: 'active' | 'suspended' | 'pending';
   emailVerified: boolean;
+  emailVerificationToken?: string;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
+  refreshToken?: string;
+  tokenVersion: number;
   lastLoginAt?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -48,6 +53,24 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: false,
     },
+    emailVerificationToken: {
+      type: String,
+      index: true,
+    },
+    resetPasswordToken: {
+      type: String,
+      index: true,
+    },
+    resetPasswordExpires: {
+      type: Date,
+    },
+    refreshToken: {
+      type: String,
+    },
+    tokenVersion: {
+      type: Number,
+      default: 0,
+    },
     lastLoginAt: {
       type: Date,
     },
@@ -59,5 +82,6 @@ const userSchema = new Schema<IUser>(
 
 // Indexes
 userSchema.index({ role: 1, status: 1 });
+userSchema.index({ resetPasswordToken: 1, resetPasswordExpires: 1 });
 
 export const User = mongoose.model<IUser>('User', userSchema);

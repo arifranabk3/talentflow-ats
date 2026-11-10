@@ -2,34 +2,60 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from '@/utils/navigation';
-import { Briefcase, Lock, Mail, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Briefcase, Lock, Mail, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { useAuth, UserRole } from '@/context/AuthContext';
 import { PublicHeader } from '@/components/layout/PublicHeader';
 
 export const LoginPage: React.FC = () => {
   const [selectedRole, setSelectedRole] = useState<UserRole>('recruiter');
   const [email, setEmail] = useState('recruiter@talentflow.cloud');
-  const [password, setPassword] = useState('••••••••••••');
+  const [password, setPassword] = useState('Password123!');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleRoleSelect = (role: UserRole) => {
     setSelectedRole(role);
-    if (role === 'recruiter') setEmail('recruiter@talentflow.cloud');
-    else if (role === 'candidate') setEmail('candidate@talentflow.cloud');
-    else if (role === 'admin') setEmail('admin@talentflow.cloud');
+    setError(null);
+    if (role === 'recruiter') {
+      setEmail('recruiter@talentflow.cloud');
+      setPassword('Password123!');
+    } else if (role === 'candidate') {
+      setEmail('candidate@talentflow.cloud');
+      setPassword('Password123!');
+    } else if (role === 'admin') {
+      setEmail('admin@talentflow.cloud');
+      setPassword('AdminPassword2026!');
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    login(selectedRole);
-    if (selectedRole === 'admin') navigate('/admin/dashboard');
-    else if (selectedRole === 'candidate') navigate('/candidate/dashboard');
-    else navigate('/recruiter/dashboard');
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Attempt live login with backend or demo preset
+      const res = await login(email.trim(), password);
+      if (res && !res.success) {
+        setError(res.error || 'Invalid email or password credentials.');
+        return;
+      }
+
+      if (selectedRole === 'admin') navigate('/admin/dashboard');
+      else if (selectedRole === 'candidate') navigate('/candidate/dashboard');
+      else navigate('/recruiter/dashboard');
+    } catch (err: any) {
+      setError(err?.message || 'Authentication failed. Please verify credentials.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFBF9] flex flex-col justify-between font-sans">
+    <div className="min-h-screen bg-[#FAFBF9] flex flex-col justify-between font-sans text-slate-900">
       <PublicHeader />
 
       <main className="flex-1 flex items-center justify-center p-4 sm:p-8">
@@ -60,6 +86,13 @@ export const LoginPage: React.FC = () => {
               </button>
             ))}
           </div>
+
+          {error && (
+            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -92,17 +125,27 @@ export const LoginPage: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full pl-10 pr-4 py-2.5 text-xs bg-[#FAFBF9] border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-teal-700"
+                  className="w-full pl-10 pr-4 py-2.5 text-xs bg-[#FAFBF9] border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-teal-700 font-medium"
                 />
               </div>
             </div>
 
             <button
               type="submit"
-              className="w-full py-3 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs shadow-soft-md transition-all flex items-center justify-center gap-2"
+              disabled={loading}
+              className="w-full py-3 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs shadow-soft-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              <span>Access {selectedRole.toUpperCase()} Workspace</span>
-              <ArrowRight className="w-4 h-4" />
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Verifying Credentials...</span>
+                </>
+              ) : (
+                <>
+                  <span>Access {selectedRole.toUpperCase()} Workspace</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
           </form>
 

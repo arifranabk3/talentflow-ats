@@ -165,6 +165,30 @@ export const authApi = {
     const res = await apiClient.post<ApiResponse<null>>('/auth/logout');
     return res.data;
   },
+  forgotPassword: async (email: string) => {
+    const res = await apiClient.post<ApiResponse<{ resetToken?: string }>>('/auth/forgot-password', { email });
+    return res.data;
+  },
+  resetPassword: async (token: string, newPassword: string) => {
+    const res = await apiClient.post<ApiResponse<null>>('/auth/reset-password', { token, newPassword });
+    return res.data;
+  },
+  verifyEmail: async (token: string) => {
+    const res = await apiClient.get<ApiResponse<null>>(`/auth/verify-email/${token}`);
+    return res.data;
+  },
+  changePassword: async (currentPassword: string, newPassword: string) => {
+    const res = await apiClient.patch<ApiResponse<{ token: string }>>('/auth/change-password', { currentPassword, newPassword });
+    return res.data;
+  },
+  updateProfile: async (data: { name?: string; email?: string }) => {
+    const res = await apiClient.patch<ApiResponse<{ user: UserDto }>>('/auth/profile', data);
+    return res.data;
+  },
+  deactivateAccount: async () => {
+    const res = await apiClient.delete<ApiResponse<null>>('/auth/me');
+    return res.data;
+  },
 };
 
 // -------------------------------------------------------------
