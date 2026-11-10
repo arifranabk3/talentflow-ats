@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Link, useNavigate } from '@/utils/navigation';
+import { Link, useNavigate, useSearchParams } from '@/utils/navigation';
 import { Briefcase, Building2, User, Mail, Lock, ArrowRight, ShieldCheck, Loader2, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { PublicHeader } from '@/components/layout/PublicHeader';
 import { authApi, companiesApi, getErrorMessage } from '@/services/api';
+import { getSafeRedirectUrl, getDefaultDashboardForRole } from '@/utils/authRoutes';
 
 export const RegisterPage: React.FC = () => {
   const [role, setRole] = useState<'recruiter' | 'candidate'>('recruiter');
@@ -18,6 +19,8 @@ export const RegisterPage: React.FC = () => {
 
   const { login } = useAuth();
   const navigate = useNavigate();
+  const searchParams = useSearchParams();
+  const nextParam = searchParams?.get('next');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,12 +51,9 @@ export const RegisterPage: React.FC = () => {
           }
         }
 
-        login(role);
-        if (role === 'recruiter') {
-          navigate('/recruiter/dashboard');
-        } else {
-          navigate('/candidate/dashboard');
-        }
+        await login(email.trim(), password);
+        const destination = getSafeRedirectUrl(nextParam, getDefaultDashboardForRole(role));
+        navigate(destination, { replace: true });
       }
     } catch (err) {
       setError(getErrorMessage(err));
@@ -74,15 +74,15 @@ export const RegisterPage: React.FC = () => {
               <Building2 className="w-6 h-6 text-white" />
             </div>
             <h1 className="text-2xl font-bold text-slate-900 font-display">Create Workspace</h1>
-            <p className="text-xs text-slate-600">Start your full-access enterprise hiring command center</p>
+            <p className="text-xs text-slate-600">Start your 14-day full access trial for your talent acquisition team</p>
           </div>
 
-          {/* Role selector pill */}
-          <div className="p-1.5 bg-slate-100 rounded-2xl border border-slate-200 grid grid-cols-2 gap-1">
+          {/* Account Role Selector */}
+          <div className="p-1 bg-slate-100 rounded-2xl border border-slate-200 grid grid-cols-2 gap-1 text-xs">
             <button
               type="button"
               onClick={() => setRole('recruiter')}
-              className={`py-2 text-xs font-semibold rounded-xl transition-all ${
+              className={`py-2 rounded-xl font-semibold transition-all ${
                 role === 'recruiter'
                   ? 'bg-teal-700 text-white shadow-soft-sm'
                   : 'text-slate-600 hover:text-slate-900'
@@ -93,7 +93,7 @@ export const RegisterPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setRole('candidate')}
-              className={`py-2 text-xs font-semibold rounded-xl transition-all ${
+              className={`py-2 rounded-xl font-semibold transition-all ${
                 role === 'candidate'
                   ? 'bg-teal-700 text-white shadow-soft-sm'
                   : 'text-slate-600 hover:text-slate-900'
@@ -104,7 +104,7 @@ export const RegisterPage: React.FC = () => {
           </div>
 
           {error && (
-            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+            <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl flex items-center gap-2.5 text-xs text-rose-700">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               <span>{error}</span>
             </div>
@@ -113,7 +113,9 @@ export const RegisterPage: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             {role === 'recruiter' && (
               <div>
-                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600 block mb-1">Company / Organization</label>
+                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600 block mb-1">
+                  Company / Organization
+                </label>
                 <div className="relative">
                   <Building2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
@@ -121,15 +123,17 @@ export const RegisterPage: React.FC = () => {
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
                     required
-                    placeholder="e.g. Stripe, Linear, Vercel"
-                    className="w-full pl-10 pr-4 py-2.5 text-xs bg-[#FAFBF9] border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-teal-700 font-medium"
+                    placeholder="Acme Global Inc."
+                    className="w-full pl-10 pr-4 py-2.5 text-xs bg-[#FAFBF9] border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-teal-700"
                   />
                 </div>
               </div>
             )}
 
             <div>
-              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600 block mb-1">Your Full Name</label>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600 block mb-1">
+                Your Full Name
+              </label>
               <div className="relative">
                 <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
@@ -138,13 +142,15 @@ export const RegisterPage: React.FC = () => {
                   onChange={(e) => setFullName(e.target.value)}
                   required
                   placeholder="Elena Vance"
-                  className="w-full pl-10 pr-4 py-2.5 text-xs bg-[#FAFBF9] border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-teal-700 font-medium"
+                  className="w-full pl-10 pr-4 py-2.5 text-xs bg-[#FAFBF9] border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-teal-700"
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600 block mb-1">Work Email</label>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600 block mb-1">
+                Work Email
+              </label>
               <div className="relative">
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
@@ -153,13 +159,15 @@ export const RegisterPage: React.FC = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder="elena@company.com"
-                  className="w-full pl-10 pr-4 py-2.5 text-xs bg-[#FAFBF9] border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-teal-700 font-medium"
+                  className="w-full pl-10 pr-4 py-2.5 text-xs bg-[#FAFBF9] border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-teal-700"
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600 block mb-1">Password</label>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600 block mb-1">
+                Create Password
+              </label>
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
@@ -169,7 +177,7 @@ export const RegisterPage: React.FC = () => {
                   required
                   minLength={8}
                   placeholder="At least 8 characters"
-                  className="w-full pl-10 pr-4 py-2.5 text-xs bg-[#FAFBF9] border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-teal-700 font-medium"
+                  className="w-full pl-10 pr-4 py-2.5 text-xs bg-[#FAFBF9] border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-teal-700"
                 />
               </div>
             </div>
@@ -186,7 +194,7 @@ export const RegisterPage: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <span>Initialize {role === 'recruiter' ? 'Recruiter' : 'Candidate'} Workspace</span>
+                  <span>Initialize {role === 'recruiter' ? 'Recruiter' : 'Candidate'} Account</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -196,7 +204,10 @@ export const RegisterPage: React.FC = () => {
           <div className="pt-4 border-t border-slate-200 text-center">
             <p className="text-xs text-slate-600">
               Already have an account?{' '}
-              <Link to="/login" className="font-semibold text-teal-700 hover:underline">
+              <Link
+                to={nextParam ? `/auth/login?next=${encodeURIComponent(nextParam)}` : '/auth/login'}
+                className="font-semibold text-teal-700 hover:underline"
+              >
                 Sign In
               </Link>
             </p>
@@ -206,7 +217,7 @@ export const RegisterPage: React.FC = () => {
       </main>
 
       <div className="py-6 text-center text-xs text-slate-400">
-        © 2026 TALENTFLOW ATS. No credit card required during trial.
+        © 2026 TALENTFLOW ATS. Protected by Enterprise SOC2 Type II Encryption.
       </div>
     </div>
   );

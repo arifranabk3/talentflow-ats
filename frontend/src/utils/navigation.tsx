@@ -6,6 +6,7 @@ import {
   useRouter as useNextRouter,
   usePathname as useNextPathname,
   useParams as useNextParams,
+  useSearchParams as useNextSearchParams,
 } from 'next/navigation';
 
 export interface LinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
@@ -71,6 +72,10 @@ export function useLocation() {
 export function useParams<T extends Record<string, string | string[] | undefined> = Record<string, string>>(): T {
   const params = useNextParams();
   return (params || {}) as T;
+}
+
+export function useSearchParams() {
+  return useNextSearchParams();
 }
 
 export function Navigate({ to, replace }: { to: string; replace?: boolean }) {

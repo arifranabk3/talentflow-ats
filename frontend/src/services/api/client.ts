@@ -27,10 +27,12 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError<{ success?: boolean; message?: string; error?: { message?: string; code?: string } }>) => {
-    // If 401 Unauthorized occurs on client side, gracefully clear stale credentials
+    // If 401 Unauthorized occurs on client side, gracefully clear stale credentials and cookies
     if (error.response?.status === 401 && typeof window !== 'undefined') {
       localStorage.removeItem('talentflow_token');
       localStorage.removeItem('talentflow_active_user');
+      document.cookie = 'talentflow_token=; path=/; max-age=0; SameSite=Lax';
+      document.cookie = 'talentflow_role=; path=/; max-age=0; SameSite=Lax';
     }
     return Promise.reject(error);
   }

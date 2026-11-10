@@ -40,8 +40,8 @@ export const PublicFooter: React.FC = () => {
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-4">Candidate Hub</h4>
             <ul className="space-y-2.5 text-xs text-slate-600">
               <li><Link to="/browse-jobs" className="hover:text-teal-700 transition-colors">Open Positions Directory</Link></li>
-              <li><Link to="/login" className="hover:text-teal-700 transition-colors">Candidate Portal Login</Link></li>
-              <li><Link to="/register" className="hover:text-teal-700 transition-colors">Join Talent Network</Link></li>
+              <li><Link to="/auth/login" className="hover:text-teal-700 transition-colors">Candidate Portal Login</Link></li>
+              <li><Link to="/auth/register" className="hover:text-teal-700 transition-colors">Join Talent Network</Link></li>
               <li><Link to="/candidate/applications" className="hover:text-teal-700 transition-colors">Track Application Status</Link></li>
             </ul>
           </div>

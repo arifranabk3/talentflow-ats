@@ -56,7 +56,7 @@ export const ForgotPasswordPage: React.FC = () => {
               <p className="text-xs font-semibold text-slate-800">
                 Recovery instructions dispatched. If an account matches <span className="font-bold text-teal-800">{email}</span>, you will receive an encrypted reset token.
               </p>
-              <Link to="/login" className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-700 hover:underline pt-2">
+              <Link to="/auth/login" className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-700 hover:underline pt-2">
                 <ArrowLeft className="w-3.5 h-3.5" />
                 Return to Login
               </Link>
@@ -99,7 +99,7 @@ export const ForgotPasswordPage: React.FC = () => {
               </button>
 
               <div className="pt-2 text-center">
-                <Link to="/login" className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900">
+                <Link to="/auth/login" className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900">
                   <ArrowLeft className="w-3.5 h-3.5" />
                   Back to Sign In
                 </Link>

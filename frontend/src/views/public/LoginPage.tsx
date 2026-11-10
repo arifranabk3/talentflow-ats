@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Link, useNavigate } from '@/utils/navigation';
-import { Briefcase, Lock, Mail, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from '@/utils/navigation';
+import { Briefcase, Lock, Mail, ArrowRight, Loader2, AlertCircle, Info } from 'lucide-react';
 import { useAuth, UserRole } from '@/context/AuthContext';
 import { PublicHeader } from '@/components/layout/PublicHeader';
+import { getSafeRedirectUrl, getDefaultDashboardForRole } from '@/utils/authRoutes';
 
 export const LoginPage: React.FC = () => {
   const [selectedRole, setSelectedRole] = useState<UserRole>('recruiter');
@@ -13,8 +14,18 @@ export const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { login } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const searchParams = useSearchParams();
+  const nextParam = searchParams?.get('next');
+
+  // If already authenticated, redirect to requested next URL or user's authorized dashboard
+  useEffect(() => {
+    if (isAuthenticated && user?.role) {
+      const destination = getSafeRedirectUrl(nextParam, getDefaultDashboardForRole(user.role));
+      navigate(destination, { replace: true });
+    }
+  }, [isAuthenticated, user, nextParam, navigate]);
 
   const handleRoleSelect = (role: UserRole) => {
     setSelectedRole(role);
@@ -37,16 +48,16 @@ export const LoginPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // Attempt live login with backend or demo preset
+      // Attempt live login with backend API
       const res = await login(email.trim(), password);
       if (res && !res.success) {
         setError(res.error || 'Invalid email or password credentials.');
         return;
       }
 
-      if (selectedRole === 'admin') navigate('/admin/dashboard');
-      else if (selectedRole === 'candidate') navigate('/candidate/dashboard');
-      else navigate('/recruiter/dashboard');
+      const finalRole = res.role || selectedRole;
+      const destination = getSafeRedirectUrl(nextParam, getDefaultDashboardForRole(finalRole));
+      navigate(destination, { replace: true });
     } catch (err: any) {
       setError(err?.message || 'Authentication failed. Please verify credentials.');
     } finally {
@@ -69,6 +80,16 @@ export const LoginPage: React.FC = () => {
             <p className="text-xs text-slate-600">Select a role preset or enter your workspace credentials</p>
           </div>
 
+          {/* Prompt if redirected from a protected route */}
+          {nextParam && (
+            <div className="p-3 bg-teal-50 border border-teal-200 rounded-2xl flex items-start gap-2.5 text-xs text-teal-800">
+              <Info className="w-4 h-4 text-teal-600 flex-shrink-0 mt-0.5" />
+              <span>
+                Please sign in to access <span className="font-semibold">{decodeURIComponent(nextParam)}</span>. You will be redirected immediately upon authentication.
+              </span>
+            </div>
+          )}
+
           {/* Role selector pill */}
           <div className="p-1.5 bg-slate-100 rounded-2xl border border-slate-200 grid grid-cols-3 gap-1">
             {(['recruiter', 'candidate', 'admin'] as UserRole[]).map((r) => (
@@ -76,9 +97,9 @@ export const LoginPage: React.FC = () => {
                 key={r}
                 type="button"
                 onClick={() => handleRoleSelect(r)}
-                className={`py-2 text-xs font-semibold capitalize rounded-xl transition-all ${
-                  selectedRole === r 
-                    ? 'bg-teal-700 text-white shadow-soft-sm' 
+                className={`py-2 text-xs font-semibold rounded-xl capitalize transition-all ${
+                  selectedRole === r
+                    ? 'bg-teal-700 text-white shadow-soft-sm'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -88,7 +109,7 @@ export const LoginPage: React.FC = () => {
           </div>
 
           {error && (
-            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+            <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl flex items-center gap-2.5 text-xs text-rose-700">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               <span>{error}</span>
             </div>
@@ -106,16 +127,22 @@ export const LoginPage: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full pl-10 pr-4 py-2.5 text-xs bg-[#FAFBF9] border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-teal-700 font-medium"
+                  placeholder="name@company.com"
+                  className="w-full pl-10 pr-4 py-2.5 text-xs bg-[#FAFBF9] border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-teal-700"
                 />
               </div>
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Password</label>
-                <Link to="/forgot-password" className="text-[11px] font-semibold text-teal-700 hover:underline">
-                  Forgot?
+                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600 block">
+                  Password
+                </label>
+                <Link
+                  to="/auth/forgot-password"
+                  className="text-[11px] text-teal-700 font-semibold hover:underline"
+                >
+                  Forgot password?
                 </Link>
               </div>
               <div className="relative">
@@ -125,7 +152,8 @@ export const LoginPage: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full pl-10 pr-4 py-2.5 text-xs bg-[#FAFBF9] border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-teal-700 font-medium"
+                  placeholder="••••••••••••"
+                  className="w-full pl-10 pr-4 py-2.5 text-xs bg-[#FAFBF9] border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-teal-700"
                 />
               </div>
             </div>
@@ -152,7 +180,10 @@ export const LoginPage: React.FC = () => {
           <div className="pt-4 border-t border-slate-200 text-center">
             <p className="text-xs text-slate-600">
               New organization?{' '}
-              <Link to="/register" className="font-semibold text-teal-700 hover:underline">
+              <Link
+                to={nextParam ? `/auth/register?next=${encodeURIComponent(nextParam)}` : '/auth/register'}
+                className="font-semibold text-teal-700 hover:underline"
+              >
                 Register company account
               </Link>
             </p>

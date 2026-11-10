@@ -5,3 +5,4 @@ import { CandidateJobDetailsPage } from '@/views/candidate/CandidateJobDetailsPa
 export default function Page() {
   return <CandidateJobDetailsPage />;
 }
+

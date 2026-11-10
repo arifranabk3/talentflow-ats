@@ -22,6 +22,8 @@ import {
   UserCheck 
 } from 'lucide-react';
 import { useAuth, UserRole } from '@/context/AuthContext';
+import { RouteGuard } from '@/components/auth/RouteGuard';
+import { isPublicRoute } from '@/utils/authRoutes';
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -68,7 +70,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
     { label: 'User Directory', href: '/admin/users', icon: UserCheck },
     { label: 'Company Accounts', href: '/admin/companies', icon: Building2 },
     { label: 'Job Moderation', href: '/admin/jobs', icon: Briefcase },
-    { label: 'Audit Logs & Security', href: '/admin/audit', icon: ShieldCheck },
+    { label: 'Audit Logs & Security', href: '/admin/audit-logs', icon: ShieldCheck },
   ];
 
   const activeNav = role === 'admin' ? adminNav : role === 'candidate' ? candidateNav : recruiterNav;
@@ -80,7 +82,9 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
     else navigate('/recruiter/dashboard');
   };
 
-  return (
+  const isPublic = isPublicRoute(location.pathname);
+
+  const shellLayout = (
     <div className="min-h-screen bg-[#FAFBF9] flex flex-col md:flex-row text-slate-900 font-sans">
       
       {/* Mobile Header Bar */}
@@ -143,11 +147,11 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
             </div>
           </div>
 
-          {/* Navigation Links */}
+          {/* Nav List */}
           <nav className="space-y-1">
-            <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400 px-3 mb-2">
-              Menu
-            </div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-2">
+              Management Suite
+            </p>
             {activeNav.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.href;
@@ -157,14 +161,18 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                   to={item.href}
                   onClick={() => setSidebarOpen(false)}
                   className={`
-                    flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs transition-all
+                    flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all
                     ${isActive 
-                      ? 'bg-teal-50 text-teal-800 font-bold border border-teal-200 shadow-soft-sm' 
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium'}
+                      ? 'bg-teal-50 text-teal-800 border border-teal-200 shadow-soft-sm' 
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    }
                   `}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-teal-700' : 'text-slate-500'}`} />
-                  <span className="flex-1 truncate">{item.label}</span>
+                  <div className="flex items-center gap-3">
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-teal-700' : 'text-slate-400'}`} />
+                    <span>{item.label}</span>
+                  </div>
+                  {isActive && <div className="w-1.5 h-1.5 rounded-full bg-teal-700" />}
                 </Link>
               );
             })}
@@ -175,14 +183,14 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
         <div className="p-4 border-t border-slate-200 bg-slate-50/70">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5 overflow-hidden">
-              <img src={user?.avatar} alt={user?.name} className="w-8 h-8 rounded-full object-cover border border-slate-300" />
+              <img src={user?.avatar || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=256&q=80'} alt={user?.name || 'User'} className="w-8 h-8 rounded-full object-cover border border-slate-300" />
               <div className="overflow-hidden">
-                <p className="text-xs font-semibold text-slate-900 truncate">{user?.name}</p>
-                <p className="text-[10px] text-slate-500 truncate">{user?.email}</p>
+                <p className="text-xs font-semibold text-slate-900 truncate">{user?.name || 'Guest User'}</p>
+                <p className="text-[10px] text-slate-500 truncate">{user?.email || 'guest@talentflow.cloud'}</p>
               </div>
             </div>
             <button 
-              onClick={() => { logout(); navigate('/login'); }} 
+              onClick={async () => { await logout(); navigate('/auth/login'); }} 
               className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
               title="Sign Out"
             >
@@ -228,7 +236,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
               <span className="text-[11px] font-semibold text-slate-600 hidden md:inline">
                 {user?.companyName || 'TalentFlow Cloud'}
               </span>
-              <img src={user?.avatar} alt={user?.name} className="w-7 h-7 rounded-full object-cover border border-slate-200" />
+              <img src={user?.avatar || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=256&q=80'} alt={user?.name || 'User'} className="w-7 h-7 rounded-full object-cover border border-slate-200" />
             </div>
           </div>
         </header>
@@ -259,5 +267,17 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
       </div>
 
     </div>
+  );
+
+  // If public route, render without strict auth gate
+  if (isPublic) {
+    return shellLayout;
+  }
+
+  // Otherwise, wrap in RouteGuard with role check
+  return (
+    <RouteGuard requiredRole={role}>
+      {shellLayout}
+    </RouteGuard>
   );
 };

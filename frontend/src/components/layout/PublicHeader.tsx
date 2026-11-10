@@ -77,13 +77,13 @@ export const PublicHeader: React.FC = () => {
             ) : (
               <>
                 <Link
-                  to="/login"
+                  to="/auth/login"
                   className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-teal-700 transition-colors"
                 >
                   Sign In
                 </Link>
                 <Link
-                  to="/register"
+                  to="/auth/register"
                   className="px-5 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-sm font-semibold shadow-soft-sm transition-all flex items-center gap-2"
                 >
                   <span>Request Demo</span>
@@ -126,14 +126,14 @@ export const PublicHeader: React.FC = () => {
           </Link>
           <div className="pt-4 border-t border-slate-200 flex flex-col gap-2">
             <Link
-              to="/login"
+              to="/auth/login"
               onClick={() => setMobileMenuOpen(false)}
               className="w-full py-2.5 text-center text-sm font-semibold text-slate-800 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors"
             >
               Sign In
             </Link>
             <Link
-              to="/register"
+              to="/auth/register"
               onClick={() => setMobileMenuOpen(false)}
               className="w-full py-2.5 text-center text-sm font-semibold text-white bg-teal-700 rounded-xl hover:bg-teal-800 transition-colors shadow-soft-sm"
             >

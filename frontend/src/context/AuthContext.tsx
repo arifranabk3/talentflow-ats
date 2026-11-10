@@ -18,11 +18,11 @@ export interface AuthUser {
 
 interface AuthContextType {
   user: AuthUser | null;
-  role: UserRole;
+  role: UserRole | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (emailOrRole: string, password?: string) => Promise<{ success: boolean; error?: string }> | void;
-  register: (name: string, email: string, password: string, role?: UserRole) => Promise<{ success: boolean; error?: string }>;
+  login: (emailOrRole: string, password?: string) => Promise<{ success: boolean; error?: string; role?: UserRole }>;
+  register: (name: string, email: string, password: string, role?: UserRole) => Promise<{ success: boolean; error?: string; role?: UserRole }>;
   logout: () => Promise<void>;
   switchRole: (role: UserRole) => void;
   switchRoleDemo: (role: UserRole) => void;
@@ -31,11 +31,11 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const DEMO_PROFILES: Record<UserRole, AuthUser> = {
+export const DEMO_PROFILES: Record<UserRole, AuthUser> = {
   recruiter: {
     id: 'usr-rec-01',
     name: 'Sarah Jenkins',
-    email: 'sarah.j@acmetech.io',
+    email: 'recruiter@talentflow.cloud',
     role: 'recruiter',
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=256&q=80',
     title: 'Head of Talent Acquisition',
@@ -44,7 +44,7 @@ const DEMO_PROFILES: Record<UserRole, AuthUser> = {
   candidate: {
     id: 'usr-cand-01',
     name: 'Marcus Chen',
-    email: 'marcus.chen@stanford.alumni.edu',
+    email: 'candidate@talentflow.cloud',
     role: 'candidate',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80',
     title: 'Staff Infrastructure Candidate',
@@ -52,7 +52,7 @@ const DEMO_PROFILES: Record<UserRole, AuthUser> = {
   admin: {
     id: 'usr-adm-01',
     name: 'Alexander Pierce',
-    email: 'alexander.p@talentflow.enterprise',
+    email: 'admin@talentflow.cloud',
     role: 'admin',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80',
     title: 'Platform Governance Officer',
@@ -61,6 +61,20 @@ const DEMO_PROFILES: Record<UserRole, AuthUser> = {
 
 const USER_STORAGE_KEY = 'talentflow_active_user';
 const TOKEN_STORAGE_KEY = 'talentflow_token';
+
+function setClientAuthCookies(token: string, role: UserRole) {
+  if (typeof document === 'undefined') return;
+  const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+  const secureFlag = isSecure ? '; Secure' : '';
+  document.cookie = `talentflow_token=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax${secureFlag}`;
+  document.cookie = `talentflow_role=${encodeURIComponent(role)}; path=/; max-age=604800; SameSite=Lax${secureFlag}`;
+}
+
+function clearClientAuthCookies() {
+  if (typeof document === 'undefined') return;
+  document.cookie = 'talentflow_token=; path=/; max-age=0; SameSite=Lax';
+  document.cookie = 'talentflow_role=; path=/; max-age=0; SameSite=Lax';
+}
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -71,15 +85,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem(TOKEN_STORAGE_KEY) : null;
       if (!token) {
-        // Fallback to local stored profile if running in standalone preview
-        const stored = localStorage.getItem(USER_STORAGE_KEY);
-        if (stored) {
-          setUser(JSON.parse(stored));
-        } else {
-          setUser(DEMO_PROFILES.recruiter);
-        }
+        setUser(null);
+        clearClientAuthCookies();
         setIsLoading(false);
         return;
+      }
+
+      // If running on demo token
+      if (token.startsWith('demo-')) {
+        const demoRole = token.replace('demo-', '').replace('-token', '') as UserRole;
+        if (DEMO_PROFILES[demoRole]) {
+          const profile = DEMO_PROFILES[demoRole];
+          setUser(profile);
+          setClientAuthCookies(token, demoRole);
+          setIsLoading(false);
+          return;
+        }
       }
 
       // Verify session with backend API
@@ -95,12 +116,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         setUser(authUser);
         localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(authUser));
+        setClientAuthCookies(token, u.role);
+      } else {
+        localStorage.removeItem(TOKEN_STORAGE_KEY);
+        localStorage.removeItem(USER_STORAGE_KEY);
+        clearClientAuthCookies();
+        setUser(null);
       }
     } catch {
       // Clear expired credentials
       localStorage.removeItem(TOKEN_STORAGE_KEY);
       localStorage.removeItem(USER_STORAGE_KEY);
-      setUser(DEMO_PROFILES.recruiter);
+      clearClientAuthCookies();
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
@@ -110,11 +138,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     refreshUser();
   }, [refreshUser]);
 
-  const login = async (emailOrRole: string, password?: string) => {
-    // Demo quick role switcher support (if only 1 arg passed matching role)
+  const login = async (emailOrRole: string, password?: string): Promise<{ success: boolean; error?: string; role?: UserRole }> => {
+    // Quick demo role switcher support
     if (!password && (emailOrRole === 'recruiter' || emailOrRole === 'candidate' || emailOrRole === 'admin')) {
-      switchRoleDemo(emailOrRole as UserRole);
-      return { success: true };
+      const targetRole = emailOrRole as UserRole;
+      switchRoleDemo(targetRole);
+      return { success: true, role: targetRole };
     }
 
     try {
@@ -131,7 +160,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         setUser(authUser);
         localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(authUser));
-        return { success: true };
+        setClientAuthCookies(res.data.token, u.role);
+        return { success: true, role: u.role };
       }
       return { success: false, error: res.message || 'Login failed' };
     } catch (err: any) {
@@ -140,7 +170,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (name: string, email: string, password: string, role: UserRole = 'candidate') => {
+  const register = async (name: string, email: string, password: string, role: UserRole = 'candidate'): Promise<{ success: boolean; error?: string; role?: UserRole }> => {
     try {
       const res = await authApi.register({ name, email, password, role });
       if (res.success && res.data?.token) {
@@ -155,7 +185,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         setUser(authUser);
         localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(authUser));
-        return { success: true };
+        setClientAuthCookies(res.data.token, u.role);
+        return { success: true, role: u.role };
       }
       return { success: false, error: res.message || 'Registration failed' };
     } catch (err: any) {
@@ -172,21 +203,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       localStorage.removeItem(TOKEN_STORAGE_KEY);
       localStorage.removeItem(USER_STORAGE_KEY);
+      clearClientAuthCookies();
       setUser(null);
     }
   };
 
   const switchRoleDemo = (newRole: UserRole) => {
     const profile = DEMO_PROFILES[newRole];
+    const demoToken = `demo-${newRole}-token`;
     setUser(profile);
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(profile));
+    localStorage.setItem(TOKEN_STORAGE_KEY, demoToken);
+    setClientAuthCookies(demoToken, newRole);
   };
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        role: user?.role || 'recruiter',
+        role: user?.role || null,
         isAuthenticated: !!user,
         isLoading,
         login,

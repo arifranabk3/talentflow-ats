@@ -199,7 +199,7 @@ export const LandingPage: React.FC = () => {
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             <Link
-              to="/register"
+              to="/auth/register"
               className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm shadow-soft-md transition-all text-center"
             >
               Start Free 14-Day Trial
