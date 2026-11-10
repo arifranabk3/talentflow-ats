@@ -26,7 +26,7 @@ export const RecruiterJobDetailsPage: React.FC = () => {
           </Link>
           <Link
             to={`/recruiter/jobs/${job.id}/edit`}
-            className="px-4 py-2 bg-[#F97316] hover:bg-[#EA580C] text-white text-xs font-bold rounded-xl shadow-soft-sm transition-colors flex items-center gap-1.5"
+            className="px-4 py-2 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold rounded-xl shadow-soft-sm transition-colors flex items-center gap-1.5"
           >
             <Edit className="w-3.5 h-3.5" />
             <span>Edit Requisition</span>
@@ -42,7 +42,7 @@ export const RecruiterJobDetailsPage: React.FC = () => {
             <p className="text-xs text-[#475569] leading-relaxed">{job.description}</p>
             
             <div className="pt-4 border-t border-[#F1F5F9] space-y-2">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#F97316]">Core Competencies</h3>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-teal-700">Core Competencies</h3>
               <div className="flex flex-wrap gap-2">
                 {job.skills.map((skill) => (
                   <span key={skill} className="px-2.5 py-1 rounded-md text-xs font-semibold bg-[#F1F5F9] text-[#0F172A]">
@@ -53,7 +53,7 @@ export const RecruiterJobDetailsPage: React.FC = () => {
             </div>
 
             <div className="pt-4 border-t border-[#F1F5F9] space-y-2">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#F97316]">Requirements & Rubric</h3>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-teal-700">Requirements & Rubric</h3>
               <ul className="space-y-1.5 text-xs text-[#475569]">
                 {job.requirements.map((req) => (
                   <li key={req} className="flex items-start gap-2">
@@ -86,7 +86,7 @@ export const RecruiterJobDetailsPage: React.FC = () => {
                     <span className="text-xs font-bold text-emerald-600">{cand.matchScore}% Match</span>
                     <Link
                       to={`/recruiter/candidates/${cand.id}`}
-                      className="text-xs font-bold text-[#F97316] hover:underline"
+                      className="text-xs font-bold text-teal-700 hover:underline"
                     >
                       Profile →
                     </Link>

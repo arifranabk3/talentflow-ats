@@ -4,13 +4,10 @@ import React from 'react';
 import { Link, useLocation } from '@/utils/navigation';
 import { 
   Briefcase, 
-  Sparkles, 
   ArrowRight, 
   Menu, 
   X,
-  ShieldCheck,
-  CheckCircle2,
-  ChevronDown
+  UserCheck
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
@@ -20,38 +17,38 @@ export const PublicHeader: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
 
   return (
-    <header className="sticky top-0 z-50 bg-[#0A1424]/90 backdrop-blur-md border-b border-[#14284B]">
+    <header className="sticky top-0 z-50 bg-[#FAFBF9]/90 backdrop-blur-md border-b border-slate-200 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           
-          {/* Logo */}
+          {/* Distinct Enterprise Logo */}
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#F97316] to-[#FB923C] flex items-center justify-center text-white shadow-glow-orange group-hover:scale-105 transition-transform">
+            <div className="w-10 h-10 rounded-xl bg-teal-700 flex items-center justify-center text-white shadow-soft-sm group-hover:bg-teal-800 transition-colors">
               <Briefcase className="w-5 h-5 text-white" />
             </div>
             <div className="flex flex-col">
-              <span className="font-display font-bold text-xl tracking-tight text-white flex items-center gap-1.5">
+              <span className="font-display font-bold text-xl tracking-tight text-slate-900 flex items-center gap-2">
                 TALENTFLOW
-                <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded bg-[#F97316]/20 text-[#F97316] border border-[#F97316]/30">
+                <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
                   ATS
                 </span>
               </span>
-              <span className="text-[10px] text-[#94A3B8] font-medium tracking-wide">Enterprise Candidate Pipeline</span>
+              <span className="text-[11px] text-slate-500 font-medium tracking-wide">Enterprise Talent Acquisition</span>
             </div>
           </Link>
 
-          {/* Desktop Nav */}
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
             <Link 
               to="/#features" 
-              className="text-sm font-medium text-[#94A3B8] hover:text-white transition-colors"
+              className="text-sm font-medium text-slate-600 hover:text-teal-700 transition-colors"
             >
               Platform
             </Link>
             <Link 
               to="/browse-jobs" 
               className={`text-sm font-medium transition-colors ${
-                location.pathname === '/browse-jobs' ? 'text-[#F97316] font-semibold' : 'text-[#94A3B8] hover:text-white'
+                location.pathname === '/browse-jobs' ? 'text-teal-700 font-semibold' : 'text-slate-600 hover:text-teal-700'
               }`}
             >
               Explore Careers
@@ -59,7 +56,7 @@ export const PublicHeader: React.FC = () => {
             <Link 
               to="/pricing" 
               className={`text-sm font-medium transition-colors ${
-                location.pathname === '/pricing' ? 'text-[#F97316] font-semibold' : 'text-[#94A3B8] hover:text-white'
+                location.pathname === '/pricing' ? 'text-teal-700 font-semibold' : 'text-slate-600 hover:text-teal-700'
               }`}
             >
               Enterprise Pricing
@@ -71,23 +68,23 @@ export const PublicHeader: React.FC = () => {
             {isAuthenticated ? (
               <Link
                 to={user?.role === 'admin' ? '/admin/dashboard' : user?.role === 'candidate' ? '/candidate/dashboard' : '/recruiter/dashboard'}
-                className="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-[#14284B] border border-[#233757] text-white hover:border-[#F97316] transition-all"
+                className="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-teal-50 border border-teal-200 text-teal-800 hover:bg-teal-100 transition-all text-xs font-semibold"
               >
-                <img src={user?.avatar} alt={user?.name} className="w-6 h-6 rounded-full object-cover" />
-                <span className="text-xs font-semibold">{user?.name?.split(' ')[0]}'s Workspace</span>
-                <ArrowRight className="w-3.5 h-3.5 text-[#F97316]" />
+                <img src={user?.avatar} alt={user?.name} className="w-6 h-6 rounded-full object-cover border border-teal-300" />
+                <span>{user?.name?.split(' ')[0]}'s Workspace</span>
+                <ArrowRight className="w-3.5 h-3.5 text-teal-700" />
               </Link>
             ) : (
               <>
                 <Link
                   to="/login"
-                  className="px-4 py-2 text-sm font-semibold text-[#94A3B8] hover:text-white transition-colors"
+                  className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-teal-700 transition-colors"
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/register"
-                  className="px-5 py-2.5 rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white text-sm font-bold shadow-soft-md shadow-[#F97316]/20 transition-all hover:shadow-glow-orange flex items-center gap-2"
+                  className="px-5 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-sm font-semibold shadow-soft-sm transition-all flex items-center gap-2"
                 >
                   <span>Request Demo</span>
                   <ArrowRight className="w-4 h-4" />
@@ -100,7 +97,8 @@ export const PublicHeader: React.FC = () => {
           <div className="flex md:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-[#94A3B8] hover:text-white"
+              className="p-2 text-slate-600 hover:text-slate-900"
+              aria-label="Toggle Navigation Menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -111,33 +109,33 @@ export const PublicHeader: React.FC = () => {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-[#0A1424] border-b border-[#14284B] px-4 pt-3 pb-6 space-y-4">
+        <div className="md:hidden bg-white border-b border-slate-200 px-4 pt-3 pb-6 space-y-4 shadow-soft-md">
           <Link
             to="/browse-jobs"
             onClick={() => setMobileMenuOpen(false)}
-            className="block text-sm font-medium text-[#94A3B8] hover:text-white py-2"
+            className="block text-sm font-medium text-slate-700 hover:text-teal-700 py-2"
           >
             Explore Careers
           </Link>
           <Link
             to="/pricing"
             onClick={() => setMobileMenuOpen(false)}
-            className="block text-sm font-medium text-[#94A3B8] hover:text-white py-2"
+            className="block text-sm font-medium text-slate-700 hover:text-teal-700 py-2"
           >
             Enterprise Pricing
           </Link>
-          <div className="pt-4 border-t border-[#14284B] flex flex-col gap-2">
+          <div className="pt-4 border-t border-slate-200 flex flex-col gap-2">
             <Link
               to="/login"
               onClick={() => setMobileMenuOpen(false)}
-              className="w-full py-2.5 text-center text-sm font-semibold text-white bg-[#14284B] rounded-xl"
+              className="w-full py-2.5 text-center text-sm font-semibold text-slate-800 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors"
             >
               Sign In
             </Link>
             <Link
               to="/register"
               onClick={() => setMobileMenuOpen(false)}
-              className="w-full py-2.5 text-center text-sm font-bold text-white bg-[#F97316] rounded-xl"
+              className="w-full py-2.5 text-center text-sm font-semibold text-white bg-teal-700 rounded-xl hover:bg-teal-800 transition-colors shadow-soft-sm"
             >
               Request Free Demo
             </Link>
@@ -147,4 +145,3 @@ export const PublicHeader: React.FC = () => {
     </header>
   );
 };
-

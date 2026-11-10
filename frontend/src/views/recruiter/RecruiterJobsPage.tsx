@@ -105,7 +105,7 @@ export const RecruiterJobsPage: React.FC = () => {
       actions={
         <Link
           to="/recruiter/jobs/new"
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white text-xs font-bold shadow-soft-sm shadow-[#F97316]/20 transition-all"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold shadow-soft-sm shadow-soft-sm transition-all"
         >
           <Plus className="w-4 h-4" />
           <span>New Job Opening</span>
@@ -141,7 +141,7 @@ export const RecruiterJobsPage: React.FC = () => {
             placeholder="Search roles or keywords..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 text-xs bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[#0F172A] focus:outline-none focus:border-[#F97316]"
+            className="w-full pl-10 pr-4 py-2 text-xs bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[#0F172A] focus:outline-none focus:border-teal-700"
           />
         </div>
 
@@ -149,7 +149,7 @@ export const RecruiterJobsPage: React.FC = () => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 text-xs bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[#0F172A] font-medium focus:outline-none focus:border-[#F97316]"
+            className="px-3 py-2 text-xs bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[#0F172A] font-medium focus:outline-none focus:border-teal-700"
           >
             <option value="all">All Statuses</option>
             <option value="published">Published</option>
@@ -163,7 +163,7 @@ export const RecruiterJobsPage: React.FC = () => {
       {/* Requisitions List */}
       {loading ? (
         <div className="py-16 flex justify-center">
-          <Loader2 className="w-8 h-8 text-[#F97316] animate-spin" />
+          <Loader2 className="w-8 h-8 text-teal-700 animate-spin" />
         </div>
       ) : jobs.length === 0 ? (
         <div className="text-center py-16 bg-white border border-[#E2E8F0] rounded-2xl">

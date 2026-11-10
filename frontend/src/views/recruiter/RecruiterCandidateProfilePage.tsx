@@ -37,7 +37,7 @@ export const RecruiterCandidateProfilePage: React.FC = () => {
             <Calendar className="w-3.5 h-3.5" />
             <span>Schedule Panel</span>
           </Link>
-          <button className="px-4 py-2 bg-[#F97316] hover:bg-[#EA580C] text-white text-xs font-bold rounded-xl shadow-soft-sm transition-colors">
+          <button className="px-4 py-2 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold rounded-xl shadow-soft-sm transition-colors">
             Advance Stage →
           </button>
         </div>
@@ -58,7 +58,7 @@ export const RecruiterCandidateProfilePage: React.FC = () => {
               </div>
               <div className="text-right">
                 <span className="text-2xl font-black text-[#059669] flex items-center gap-1">
-                  <Sparkles className="w-5 h-5 text-[#F97316]" />
+                  <Sparkles className="w-5 h-5 text-teal-700" />
                   {candidate.matchScore}%
                 </span>
                 <span className="text-[10px] text-[#94A3B8] font-bold uppercase tracking-wider">Semantic Match</span>
@@ -83,7 +83,7 @@ export const RecruiterCandidateProfilePage: React.FC = () => {
 
           {/* Skills Breakdown */}
           <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-soft-sm space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#F97316]">Matched Technical Skills</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-teal-700">Matched Technical Skills</h3>
             <div className="flex flex-wrap gap-2">
               {candidate.skills.map((s) => (
                 <span key={s} className="px-3 py-1 rounded-lg text-xs font-bold bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A]">
@@ -95,7 +95,7 @@ export const RecruiterCandidateProfilePage: React.FC = () => {
 
           {/* Evaluation Scorecard */}
           <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-soft-sm space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#F97316]">Team Evaluation Rubric</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-teal-700">Team Evaluation Rubric</h3>
             <div className="space-y-2 text-xs">
               <div className="p-3 bg-[#F8FAFC] rounded-xl flex items-center justify-between">
                 <div>

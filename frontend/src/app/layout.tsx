@@ -23,7 +23,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="bg-navy-950 text-slate-100 antialiased min-h-screen selection:bg-brand-orange selection:text-white">
+      <body className="bg-[#FAFBF9] text-slate-900 font-sans antialiased min-h-screen selection:bg-teal-700 selection:text-white">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

@@ -61,7 +61,7 @@ export const RecruiterDashboardPage: React.FC = () => {
       actions={
         <Link
           to="/recruiter/jobs/new"
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white text-xs font-bold shadow-soft-sm shadow-[#F97316]/20 transition-all"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold shadow-soft-sm shadow-soft-sm transition-all"
         >
           <Plus className="w-4 h-4" />
           <span>Create New Requisition</span>
@@ -93,7 +93,7 @@ export const RecruiterDashboardPage: React.FC = () => {
         <div className="p-5 bg-white border border-[#E2E8F0] rounded-2xl shadow-soft-sm space-y-2">
           <div className="flex items-center justify-between text-[#64748B]">
             <span className="text-xs font-semibold">Primary Organization</span>
-            <div className="p-2 rounded-xl bg-[#FFF7ED] text-[#F97316]"><Building className="w-4 h-4" /></div>
+            <div className="p-2 rounded-xl bg-teal-50 text-teal-700"><Building className="w-4 h-4" /></div>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-base font-bold text-[#0F172A] truncate">
@@ -132,10 +132,10 @@ export const RecruiterDashboardPage: React.FC = () => {
       <div className="mt-8 bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-soft-sm">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-base font-bold text-[#0F172A] flex items-center gap-2">
-            <Briefcase className="w-4 h-4 text-[#F97316]" />
+            <Briefcase className="w-4 h-4 text-teal-700" />
             Active Company Requisitions
           </h2>
-          <Link to="/recruiter/jobs" className="text-xs font-bold text-[#F97316] hover:underline flex items-center gap-1">
+          <Link to="/recruiter/jobs" className="text-xs font-bold text-teal-700 hover:underline flex items-center gap-1">
             View All Openings ({jobs.length})
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
@@ -143,7 +143,7 @@ export const RecruiterDashboardPage: React.FC = () => {
 
         {loading ? (
           <div className="py-12 flex justify-center">
-            <Loader2 className="w-8 h-8 text-[#F97316] animate-spin" />
+            <Loader2 className="w-8 h-8 text-teal-700 animate-spin" />
           </div>
         ) : jobs.length === 0 ? (
           <div className="text-center py-12 text-xs text-[#64748B]">

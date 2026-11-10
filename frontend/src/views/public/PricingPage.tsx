@@ -66,37 +66,37 @@ export const PricingPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col">
+    <div className="min-h-screen bg-[#FAFBF9] flex flex-col font-sans text-slate-900">
       <PublicHeader />
 
       <main className="flex-1 py-16 sm:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
         
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
-          <span className="text-xs font-bold uppercase tracking-widest text-[#F97316]">Transparent Pricing</span>
-          <h1 className="text-3xl sm:text-5xl font-black text-[#0F172A] font-display">
-            Predictable plans for high-growth hiring teams.
+          <span className="text-xs font-bold uppercase tracking-wider text-teal-700">Predictable Plans</span>
+          <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-900 font-display">
+            Transparent pricing for high-growth hiring teams.
           </h1>
-          <p className="text-sm sm:text-base text-[#64748B]">
+          <p className="text-sm sm:text-base text-slate-600">
             No surprise per-seat fees for interviewers or hiring managers. Scale your candidate volume with complete operational clarity.
           </p>
 
           {/* Billing Switch */}
           <div className="pt-4 flex items-center justify-center gap-3">
-            <span className={`text-xs font-bold ${!annual ? 'text-[#0F172A]' : 'text-[#64748B]'}`}>Monthly</span>
+            <span className={`text-xs font-semibold ${!annual ? 'text-slate-900' : 'text-slate-500'}`}>Monthly</span>
             <button
               onClick={() => setAnnual(!annual)}
-              className="w-12 h-6 rounded-full bg-[#0A1424] p-1 flex items-center transition-colors relative"
+              className="w-12 h-6 rounded-full bg-slate-200 p-1 flex items-center transition-colors relative"
             >
               <div
-                className={`w-4 h-4 rounded-full bg-[#F97316] transition-transform ${
+                className={`w-4 h-4 rounded-full bg-teal-700 transition-transform ${
                   annual ? 'translate-x-6' : 'translate-x-0'
                 }`}
               />
             </button>
-            <span className={`text-xs font-bold flex items-center gap-1.5 ${annual ? 'text-[#0F172A]' : 'text-[#64748B]'}`}>
+            <span className={`text-xs font-semibold flex items-center gap-1.5 ${annual ? 'text-slate-900' : 'text-slate-500'}`}>
               <span>Annual Billing</span>
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-[#ECFDF5] text-[#059669]">Save 20%</span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">Save 20%</span>
             </span>
           </div>
         </div>
@@ -108,12 +108,12 @@ export const PricingPage: React.FC = () => {
               key={t.name}
               className={`rounded-3xl p-8 flex flex-col justify-between border transition-all ${
                 t.popular 
-                  ? 'bg-[#0A1424] text-white border-[#F97316] shadow-soft-xl relative scale-105 z-10' 
-                  : 'bg-white text-[#0F172A] border-[#E2E8F0] shadow-soft-sm'
+                  ? 'bg-gradient-to-b from-teal-900 to-slate-900 text-white border-teal-700 shadow-soft-xl relative scale-105 z-10' 
+                  : 'bg-white text-slate-900 border-slate-200 shadow-soft-sm hover:border-teal-500'
               }`}
             >
               {t.popular && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-[#F97316] text-white text-[11px] font-bold uppercase tracking-widest shadow-md">
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-emerald-600 text-white text-[11px] font-bold uppercase tracking-wider shadow-soft-sm">
                   Most Popular for Scaling Teams
                 </div>
               )}
@@ -121,28 +121,28 @@ export const PricingPage: React.FC = () => {
               <div className="space-y-6">
                 <div>
                   <h3 className="text-xl font-bold font-display">{t.name}</h3>
-                  <p className={`text-xs mt-1 leading-relaxed ${t.popular ? 'text-[#94A3B8]' : 'text-[#64748B]'}`}>
+                  <p className={`text-xs mt-1.5 leading-relaxed ${t.popular ? 'text-teal-100/90' : 'text-slate-600'}`}>
                     {t.desc}
                   </p>
                 </div>
 
                 <div className="pb-6 border-b border-current/10">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-black font-display">{t.price}</span>
+                    <span className="text-4xl font-extrabold font-display">{t.price}</span>
                     {t.price !== 'Custom' && <span className="text-xs font-semibold opacity-70">/ month</span>}
                   </div>
                   <p className="text-[11px] opacity-70 mt-1">{t.period}</p>
                 </div>
 
                 <div className="space-y-3">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#F97316] block">
+                  <span className={`text-[11px] font-bold uppercase tracking-wider block ${t.popular ? 'text-emerald-300' : 'text-teal-700'}`}>
                     What's included:
                   </span>
                   <ul className="space-y-2.5 text-xs">
                     {t.features.map((feat) => (
                       <li key={feat} className="flex items-start gap-2.5">
-                        <Check className="w-4 h-4 text-[#F97316] flex-shrink-0 mt-0.5" />
-                        <span className={t.popular ? 'text-[#CBD5E1]' : 'text-[#475569]'}>{feat}</span>
+                        <Check className={`w-4 h-4 flex-shrink-0 mt-0.5 ${t.popular ? 'text-emerald-400' : 'text-teal-700'}`} />
+                        <span className={t.popular ? 'text-slate-100' : 'text-slate-700'}>{feat}</span>
                       </li>
                     ))}
                   </ul>
@@ -152,10 +152,10 @@ export const PricingPage: React.FC = () => {
               <div className="pt-8">
                 <Link
                   to={t.href}
-                  className={`block w-full py-3.5 text-center rounded-xl font-bold text-xs transition-all ${
+                  className={`block w-full py-3.5 text-center rounded-xl font-semibold text-xs transition-all shadow-soft-sm ${
                     t.popular
-                      ? 'bg-[#F97316] hover:bg-[#EA580C] text-white shadow-soft-md shadow-[#F97316]/30'
-                      : 'bg-[#0F172A] hover:bg-[#1E293B] text-white'
+                      ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-soft-md'
+                      : 'bg-teal-700 hover:bg-teal-800 text-white'
                   }`}
                 >
                   {t.cta}
@@ -171,4 +171,3 @@ export const PricingPage: React.FC = () => {
     </div>
   );
 };
-

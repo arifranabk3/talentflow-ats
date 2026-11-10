@@ -310,3 +310,4 @@ export const applicationsApi = {
     return res.data;
   },
 };
+

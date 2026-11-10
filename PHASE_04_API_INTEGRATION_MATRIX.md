@@ -28,3 +28,4 @@
 | **Recruiter: Evaluation Notes** | `/recruiter/pipeline` (`src/views/recruiter/RecruiterPipelinePage.tsx`) | `/api/v1/applications/:id/notes` | `PATCH` | **Pass** | **Pass (Verified)** |
 | **Company: Team & Members** | `/recruiter/settings` (`src/views/recruiter/RecruiterSettingsPage.tsx`) | `/api/v1/companies/:id/members` | `GET` | **Pass** | **Pass (Verified)** |
 | **Company: Invitations** | `/recruiter/settings` (`src/views/recruiter/RecruiterSettingsPage.tsx`) | `/api/v1/companies/:id/invitations` | `POST` | **Pass** | **Pass (Verified)** |
+

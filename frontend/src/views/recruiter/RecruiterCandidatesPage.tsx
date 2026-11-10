@@ -66,14 +66,14 @@ export const RecruiterCandidatesPage: React.FC = () => {
                   </td>
                   <td className="py-3.5 px-4">
                     <span className="font-extrabold text-[#059669] flex items-center gap-1">
-                      <Sparkles className="w-3.5 h-3.5 text-[#F97316]" />
+                      <Sparkles className="w-3.5 h-3.5 text-teal-700" />
                       {c.matchScore}%
                     </span>
                   </td>
                   <td className="py-3.5 px-4 text-right">
                     <Link
                       to={`/recruiter/candidates/${c.id}`}
-                      className="text-xs font-bold text-[#F97316] hover:underline"
+                      className="text-xs font-bold text-teal-700 hover:underline"
                     >
                       Inspect Profile
                     </Link>

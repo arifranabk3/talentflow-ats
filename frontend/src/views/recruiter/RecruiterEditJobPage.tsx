@@ -72,7 +72,7 @@ export const RecruiterEditJobPage: React.FC = () => {
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#E2E8F0]">
               <button
                 type="submit"
-                className="px-5 py-2 bg-[#F97316] text-white text-xs font-bold rounded-xl"
+                className="px-5 py-2 bg-teal-700 text-white text-xs font-bold rounded-xl"
               >
                 Save Changes
               </button>

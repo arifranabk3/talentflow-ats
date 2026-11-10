@@ -49,7 +49,7 @@ export const RecruiterCreateJobPage: React.FC = () => {
                   placeholder="e.g. Staff Distributed Systems Engineer"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-4 py-2.5 text-xs bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[#0F172A] focus:outline-none focus:border-[#F97316] font-semibold"
+                  className="w-full px-4 py-2.5 text-xs bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[#0F172A] focus:outline-none focus:border-teal-700 font-semibold"
                 />
               </div>
 
@@ -61,7 +61,7 @@ export const RecruiterCreateJobPage: React.FC = () => {
                   <select
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
-                    className="w-full px-4 py-2.5 text-xs bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[#0F172A] focus:outline-none focus:border-[#F97316]"
+                    className="w-full px-4 py-2.5 text-xs bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[#0F172A] focus:outline-none focus:border-teal-700"
                   >
                     <option value="Core Infrastructure">Core Infrastructure</option>
                     <option value="Product & Design">Product & Design</option>
@@ -78,7 +78,7 @@ export const RecruiterCreateJobPage: React.FC = () => {
                   <select
                     value={type}
                     onChange={(e) => setType(e.target.value)}
-                    className="w-full px-4 py-2.5 text-xs bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[#0F172A] focus:outline-none focus:border-[#F97316]"
+                    className="w-full px-4 py-2.5 text-xs bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[#0F172A] focus:outline-none focus:border-teal-700"
                   >
                     <option value="Full-time">Full-time</option>
                     <option value="Contract">Contract</option>
@@ -96,7 +96,7 @@ export const RecruiterCreateJobPage: React.FC = () => {
                     placeholder="San Francisco, CA (Hybrid)"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="w-full px-4 py-2.5 text-xs bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[#0F172A] focus:outline-none focus:border-[#F97316]"
+                    className="w-full px-4 py-2.5 text-xs bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[#0F172A] focus:outline-none focus:border-teal-700"
                   />
                 </div>
 
@@ -110,7 +110,7 @@ export const RecruiterCreateJobPage: React.FC = () => {
                     placeholder="$190,000 - $240,000"
                     value={salaryRange}
                     onChange={(e) => setSalaryRange(e.target.value)}
-                    className="w-full px-4 py-2.5 text-xs bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[#0F172A] focus:outline-none focus:border-[#F97316]"
+                    className="w-full px-4 py-2.5 text-xs bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[#0F172A] focus:outline-none focus:border-teal-700"
                   />
                 </div>
               </div>
@@ -125,7 +125,7 @@ export const RecruiterCreateJobPage: React.FC = () => {
                   placeholder="Outline the core technical challenges, impact milestones, and team charter..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-4 py-2.5 text-xs bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[#0F172A] focus:outline-none focus:border-[#F97316]"
+                  className="w-full px-4 py-2.5 text-xs bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[#0F172A] focus:outline-none focus:border-teal-700"
                 />
               </div>
             </div>
@@ -140,7 +140,7 @@ export const RecruiterCreateJobPage: React.FC = () => {
               </button>
               <button
                 type="submit"
-                className="px-6 py-2.5 bg-[#F97316] hover:bg-[#EA580C] text-white text-xs font-bold rounded-xl shadow-soft-sm transition-all"
+                className="px-6 py-2.5 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold rounded-xl shadow-soft-sm transition-all"
               >
                 Publish Opening
               </button>
