@@ -13,3 +13,4 @@ export const updateApplicationStatusSchema = z.object({
 export const updateApplicationNotesSchema = z.object({
   recruiterNotes: z.string().max(5000),
 });
+

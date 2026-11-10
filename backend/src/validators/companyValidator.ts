@@ -22,3 +22,4 @@ export const updateMemberRoleSchema = z.object({
   role: z.enum(['owner', 'recruiter', 'hiring_manager']),
   status: z.enum(['active', 'invited', 'revoked']).optional(),
 });
+

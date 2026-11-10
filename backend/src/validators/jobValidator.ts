@@ -35,3 +35,4 @@ export const listJobsQuerySchema = z.object({
   page: z.string().regex(/^\d+$/).default('1'),
   limit: z.string().regex(/^\d+$/).default('20'),
 });
+

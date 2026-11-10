@@ -34,3 +34,4 @@ applicationRouter.patch(
   validateBody(updateApplicationNotesSchema),
   updateApplicationNotes
 );
+

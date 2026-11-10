@@ -390,3 +390,4 @@ export async function updateApplicationNotes(req: Request, res: Response, next: 
     next(error);
   }
 }
+

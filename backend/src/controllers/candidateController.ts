@@ -125,3 +125,4 @@ export async function getCandidateById(req: Request, res: Response, next: NextFu
     next(error);
   }
 }
+

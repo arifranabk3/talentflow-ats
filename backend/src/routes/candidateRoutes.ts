@@ -12,3 +12,4 @@ candidateRouter.patch('/me', requireAuth, requireRole('candidate'), validateBody
 
 // Inspection by recruiter / admin (or self)
 candidateRouter.get('/:id', requireAuth, getCandidateById);
+

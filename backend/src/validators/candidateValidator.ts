@@ -31,3 +31,4 @@ export const updateCandidateProfileSchema = z.object({
   portfolioUrl: z.string().url('Invalid portfolio URL').optional().or(z.literal('')),
   linkedinUrl: z.string().url('Invalid LinkedIn URL').optional().or(z.literal('')),
 });
+
