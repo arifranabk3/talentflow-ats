@@ -7,6 +7,8 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { authRouter } from './routes/authRoutes';
 import { jobRouter } from './routes/jobRoutes';
 import { companyRouter } from './routes/companyRoutes';
+import { candidateRouter } from './routes/candidateRoutes';
+import { applicationRouter } from './routes/applicationRoutes';
 
 export function createApp(): Express {
   const app = express();
@@ -39,8 +41,10 @@ export function createApp(): Express {
 
   // API Routes
   app.use('/api/v1/auth', authRouter);
-  app.use('/api/v1/jobs', jobRouter);
   app.use('/api/v1/companies', companyRouter);
+  app.use('/api/v1/jobs', jobRouter);
+  app.use('/api/v1/candidates', candidateRouter);
+  app.use('/api/v1/applications', applicationRouter);
 
   // 404 & Error Handling
   app.use(notFoundHandler);
@@ -48,4 +52,3 @@ export function createApp(): Express {
 
   return app;
 }
-
