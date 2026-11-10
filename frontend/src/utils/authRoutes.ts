@@ -136,3 +136,4 @@ export function parseCookieValue(cookieHeader: string | null | undefined, key: s
   const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${key}=([^;]*)`));
   return match ? decodeURIComponent(match[1]) : null;
 }
+

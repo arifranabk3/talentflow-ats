@@ -237,3 +237,4 @@ export function getSafeRedirectUrl(nextUrl: string | null | undefined, defaultUr
 
 1. **Cross-Domain Cookie Synchronization:** In environments where frontend and backend operate on distinct apex domains (e.g. `talentflow-ats.vercel.app` vs an external EC2 API host), cross-origin HttpOnly cookies can be restricted by third-party cookie blocking. The dual-cookie strategy (`talentflow_token` on frontend domain + HttpOnly backend cookie) guarantees edge middleware execution in all environments.
 2. **SSO / SAML 2.0 Identity Providers:** The current implementation uses JWT session tokens and refresh token rotation with email verification. Enterprise Okta / Azure AD SAML integrations will plug directly into `authController` without altering route classification rules.
+
