@@ -1,38 +1,91 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DashboardShell } from '@/components/layout/DashboardShell';
+import { candidatesApi, CandidateProfileDto, getErrorMessage } from '@/services/api';
+import { useAuth } from '@/context/AuthContext';
 import {
   User,
-  Mail,
-  Phone,
   MapPin,
   FileText,
-  Upload,
   Save,
   CheckCircle2,
-  Sparkles,
+  AlertCircle,
+  Loader2,
   ExternalLink,
-  Award,
-  Briefcase,
-  GraduationCap
+  Briefcase
 } from 'lucide-react';
 
 export const CandidateProfilePage: React.FC = () => {
-  const [name, setName] = useState('Elena Rostova');
-  const [headline, setHeadline] = useState('Senior Staff Frontend Architect & Design Systems Lead');
-  const [email, setEmail] = useState('elena.rostova@example.com');
-  const [location, setLocation] = useState('San Francisco, CA (Remote)');
-  const [bio, setBio] = useState(
-    'Specialized in architecting high-scale Next.js SaaS platforms, design tokens, micro-frontends, and accessible user interfaces.'
-  );
-  const [skills, setSkills] = useState('React, Next.js, TypeScript, Tailwind CSS, GraphQL, Vite, WCAG 2.2, Node.js');
-  const [saved, setSaved] = useState(false);
+  const { user } = useAuth();
 
-  const handleSave = (e: React.FormEvent) => {
+  const [headline, setHeadline] = useState('');
+  const [summary, setSummary] = useState('');
+  const [location, setLocation] = useState('');
+  const [phone, setPhone] = useState('');
+  const [skillsString, setSkillsString] = useState('');
+  const [portfolioUrl, setPortfolioUrl] = useState('');
+  const [linkedinUrl, setLinkedinUrl] = useState('');
+
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await candidatesApi.getMyProfile();
+        if (res.success && res.data) {
+          const p = res.data;
+          setHeadline(p.headline || '');
+          setSummary(p.summary || '');
+          setLocation(p.location || '');
+          setPhone(p.phone || '');
+          setSkillsString(p.skills?.join(', ') || '');
+          setPortfolioUrl(p.portfolioUrl || '');
+          setLinkedinUrl(p.linkedinUrl || '');
+        }
+      } catch (err) {
+        setError(getErrorMessage(err));
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadProfile();
+  }, []);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    try {
+      setSaving(true);
+      setError(null);
+      const skillsArray = skillsString
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      const res = await candidatesApi.updateMyProfile({
+        headline,
+        summary,
+        location,
+        phone,
+        skills: skillsArray,
+        portfolioUrl: portfolioUrl || '',
+        linkedinUrl: linkedinUrl || '',
+      });
+
+      if (res.success) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+      }
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -44,143 +97,139 @@ export const CandidateProfilePage: React.FC = () => {
             Profile & Credentials
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            Candidate Profile & Resume
+            Candidate Profile & Career Summary
           </h1>
           <p className="text-slate-400 text-sm mt-1">
-            Keep your profile current to unlock automated recruiter matches and instant 1-click applications.
+            Keep your credentials updated for verified recruiter discovery across authorized company pipelines.
           </p>
         </div>
 
-        {saved && (
-          <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 text-xs flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4" />
-            Profile and resume credentials updated successfully!
+        {/* Loading state */}
+        {loading && (
+          <div className="flex justify-center items-center py-16">
+            <Loader2 className="w-8 h-8 text-brand-orange animate-spin" />
           </div>
         )}
 
-        <form onSubmit={handleSave} className="space-y-6">
-          {/* Main Info */}
-          <div className="bg-navy-900 border border-navy-800 rounded-3xl p-6 sm:p-8 space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-5 pb-5 border-b border-navy-800">
-              <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250"
-                alt="Elena"
-                className="w-20 h-20 rounded-2xl object-cover ring-2 ring-brand-orange"
-              />
-              <div>
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-navy-800 border border-navy-700 text-xs font-medium text-slate-200 hover:border-slate-500"
-                >
-                  <Upload className="w-3.5 h-3.5 text-brand-orange" />
-                  Change Headshot
-                </button>
-                <p className="text-[11px] text-slate-500 mt-1">Recommended: 400x400 JPG or PNG</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Full Name</label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-orange"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Professional Headline</label>
-                <input
-                  type="text"
-                  value={headline}
-                  onChange={(e) => setHeadline(e.target.value)}
-                  className="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-orange"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-orange"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Location Preference</label>
-                <input
-                  type="text"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-orange"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Summary Bio</label>
-              <textarea
-                rows={3}
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                className="w-full bg-navy-950 border border-navy-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-brand-orange"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Core Competencies / Skills (Comma-separated)</label>
-              <input
-                type="text"
-                value={skills}
-                onChange={(e) => setSkills(e.target.value)}
-                className="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-orange"
-              />
-            </div>
+        {/* Success Alert */}
+        {saved && (
+          <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-emerald-400 text-xs flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+            <span>Profile credentials successfully saved to TalentFlow backend!</span>
           </div>
+        )}
 
-          {/* Stored Resume File Card */}
-          <div className="bg-navy-900 border border-navy-800 rounded-3xl p-6 sm:p-8 space-y-4">
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <FileText className="w-4 h-4 text-brand-orange" />
-              Primary Stored Resume
-            </h2>
+        {/* Error Alert */}
+        {error && (
+          <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-rose-400 text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
 
-            <div className="p-4 rounded-2xl bg-navy-950 border border-navy-800 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-brand-orange/10 border border-brand-orange/20 flex items-center justify-center text-brand-orange">
-                  <FileText className="w-5 h-5" />
+        {!loading && (
+          <form onSubmit={handleSave} className="space-y-6">
+            <div className="bg-navy-900 border border-navy-800 rounded-3xl p-6 sm:p-8 space-y-5">
+              <div className="flex items-center gap-4 pb-5 border-b border-navy-800">
+                <div className="w-14 h-14 rounded-2xl bg-brand-orange/20 text-brand-orange flex items-center justify-center font-bold text-lg">
+                  {user?.name ? user.name[0].toUpperCase() : 'C'}
                 </div>
                 <div>
-                  <p className="font-semibold text-white text-xs">Elena_Rostova_Staff_Architect_Resume.pdf</p>
-                  <p className="text-[11px] text-slate-500">2.4 MB • Updated 3 days ago</p>
+                  <h2 className="text-base font-bold text-white">{user?.name || 'Candidate User'}</h2>
+                  <p className="text-xs text-slate-400">{user?.email}</p>
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="headline" className="block text-xs font-semibold text-slate-300 mb-1.5">Professional Headline</label>
+                  <input
+                    id="headline"
+                    type="text"
+                    value={headline}
+                    onChange={(e) => setHeadline(e.target.value)}
+                    placeholder="e.g. Senior Staff Frontend Architect"
+                    className="w-full bg-navy-950 border border-navy-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-orange"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="location" className="block text-xs font-semibold text-slate-300 mb-1.5">Location</label>
+                  <input
+                    id="location"
+                    type="text"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="e.g. San Francisco, CA (Remote)"
+                    className="w-full bg-navy-950 border border-navy-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-orange"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="summary" className="block text-xs font-semibold text-slate-300 mb-1.5">Professional Bio & Experience Summary</label>
+                <textarea
+                  id="summary"
+                  rows={4}
+                  value={summary}
+                  onChange={(e) => setSummary(e.target.value)}
+                  placeholder="Summarize your engineering expertise, notable achievements, and career focus..."
+                  className="w-full bg-navy-950 border border-navy-700 rounded-xl p-4 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-orange resize-none"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="skillsString" className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  Core Skills & Technologies (Comma-separated)
+                </label>
+                <input
+                  id="skillsString"
+                  type="text"
+                  value={skillsString}
+                  onChange={(e) => setSkillsString(e.target.value)}
+                  placeholder="React, Next.js, TypeScript, Node.js, MongoDB, Docker"
+                  className="w-full bg-navy-950 border border-navy-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-orange"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="portfolioUrl" className="block text-xs font-semibold text-slate-300 mb-1.5">Portfolio or GitHub URL</label>
+                  <input
+                    id="portfolioUrl"
+                    type="text"
+                    value={portfolioUrl}
+                    onChange={(e) => setPortfolioUrl(e.target.value)}
+                    placeholder="https://github.com/yourhandle"
+                    className="w-full bg-navy-950 border border-navy-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-orange"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="linkedinUrl" className="block text-xs font-semibold text-slate-300 mb-1.5">LinkedIn Profile URL</label>
+                  <input
+                    id="linkedinUrl"
+                    type="text"
+                    value={linkedinUrl}
+                    onChange={(e) => setLinkedinUrl(e.target.value)}
+                    placeholder="https://linkedin.com/in/yourprofile"
+                    className="w-full bg-navy-950 border border-navy-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-orange"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end">
               <button
-                type="button"
-                className="px-3 py-1.5 rounded-lg bg-navy-800 hover:bg-navy-700 text-xs font-medium text-slate-200 border border-navy-700"
+                type="submit"
+                disabled={saving}
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-orange text-white text-xs font-bold hover:bg-brand-orange-hover shadow-lg shadow-brand-orange/20 transition-all disabled:opacity-50"
               >
-                Replace File
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                <span>Save Profile Changes</span>
               </button>
             </div>
-          </div>
-
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-bold shadow-lg shadow-brand-orange/20 transition-all"
-            >
-              <Save className="w-4 h-4" />
-              Save Candidate Profile
-            </button>
-          </div>
-        </form>
+          </form>
+        )}
       </div>
     </DashboardShell>
   );
 };
-

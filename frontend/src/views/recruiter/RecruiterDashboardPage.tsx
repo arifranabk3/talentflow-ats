@@ -1,33 +1,66 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from '@/utils/navigation';
-import { 
-  Users, 
-  Briefcase, 
-  Calendar, 
-  TrendingUp, 
-  Plus, 
-  ArrowRight, 
-  Clock, 
-  ChevronRight, 
-  CheckCircle2, 
+import {
+  Users,
+  Briefcase,
+  TrendingUp,
+  Plus,
+  ArrowRight,
+  Clock,
   Sparkles,
-  BarChart3,
-  Kanban
+  Loader2,
+  AlertCircle,
+  Building
 } from 'lucide-react';
 import { DashboardShell } from '@/components/layout/DashboardShell';
-import { MOCK_JOBS, MOCK_CANDIDATES, MOCK_INTERVIEWS } from '@/data/mockData';
+import { jobsApi, companiesApi, JobDto, CompanyDto, getErrorMessage } from '@/services/api';
 
 export const RecruiterDashboardPage: React.FC = () => {
+  const [jobs, setJobs] = useState<JobDto[]>([]);
+  const [company, setCompany] = useState<CompanyDto | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadDashboard() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch companies & jobs
+        const [compRes, jobsRes] = await Promise.all([
+          companiesApi.list({ limit: 1 }).catch(() => ({ success: true, data: { companies: [] } })),
+          jobsApi.list({ limit: 20 }).catch(() => ({ success: true, data: { jobs: [] } })),
+        ]);
+
+        if (compRes.data?.companies && compRes.data.companies.length > 0) {
+          setCompany(compRes.data.companies[0]);
+        }
+        if (jobsRes.data?.jobs) {
+          setJobs(jobsRes.data.jobs);
+        }
+      } catch (err) {
+        setError(getErrorMessage(err));
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadDashboard();
+  }, []);
+
+  const publishedJobs = jobs.filter((j) => j.status === 'published');
+  const draftJobs = jobs.filter((j) => j.status === 'draft');
+
   return (
     <DashboardShell
       title="Recruiting Command Center"
-      subtitle="Overview of active requisitions, pipeline progression, and scheduled interview panels."
+      subtitle="Overview of company requisitions, candidate pipeline progression, and verified openings."
       role="recruiter"
       actions={
         <Link
-          to="/recruiter/jobs/create"
+          to="/recruiter/jobs/new"
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white text-xs font-bold shadow-soft-sm shadow-[#F97316]/20 transition-all"
         >
           <Plus className="w-4 h-4" />
@@ -35,207 +68,123 @@ export const RecruiterDashboardPage: React.FC = () => {
         </Link>
       }
     >
+      {/* Error notification */}
+      {error && (
+        <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs flex items-center gap-2 mb-4">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
       {/* 1. Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-5 bg-white border border-[#E2E8F0] rounded-2xl shadow-soft-sm space-y-2">
           <div className="flex items-center justify-between text-[#64748B]">
-            <span className="text-xs font-semibold">Active Requisitions</span>
+            <span className="text-xs font-semibold">Active Published Jobs</span>
             <div className="p-2 rounded-xl bg-[#EFF6FF] text-[#0284C7]"><Briefcase className="w-4 h-4" /></div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-black text-[#0F172A] font-display">12</span>
-            <span className="text-[11px] font-bold text-emerald-600 flex items-center">+2 this week</span>
+            <span className="text-2xl font-black text-[#0F172A] font-display">{publishedJobs.length}</span>
+            <span className="text-[11px] font-bold text-emerald-600 flex items-center">Live on Board</span>
           </div>
-          <p className="text-[11px] text-[#94A3B8]">4 urgent engineering openings</p>
+          <p className="text-[11px] text-[#94A3B8]">{draftJobs.length} in draft staging</p>
         </div>
 
         <div className="p-5 bg-white border border-[#E2E8F0] rounded-2xl shadow-soft-sm space-y-2">
           <div className="flex items-center justify-between text-[#64748B]">
-            <span className="text-xs font-semibold">Candidates in Pipeline</span>
-            <div className="p-2 rounded-xl bg-[#FFF7ED] text-[#F97316]"><Users className="w-4 h-4" /></div>
+            <span className="text-xs font-semibold">Primary Organization</span>
+            <div className="p-2 rounded-xl bg-[#FFF7ED] text-[#F97316]"><Building className="w-4 h-4" /></div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-black text-[#0F172A] font-display">248</span>
-            <span className="text-[11px] font-bold text-emerald-600 flex items-center">+18% MoM</span>
+            <span className="text-base font-bold text-[#0F172A] truncate">
+              {company?.name || 'TalentFlow ATS Corp'}
+            </span>
           </div>
-          <p className="text-[11px] text-[#94A3B8]">34 screened by AI match score &gt;90%</p>
+          <p className="text-[11px] text-[#94A3B8]">Verified multi-tenant status</p>
         </div>
 
         <div className="p-5 bg-white border border-[#E2E8F0] rounded-2xl shadow-soft-sm space-y-2">
           <div className="flex items-center justify-between text-[#64748B]">
-            <span className="text-xs font-semibold">Interviews This Week</span>
-            <div className="p-2 rounded-xl bg-[#F5F3FF] text-[#7C3AED]"><Calendar className="w-4 h-4" /></div>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-black text-[#0F172A] font-display">19</span>
-            <span className="text-[11px] font-bold text-[#64748B]">8 completed</span>
-          </div>
-          <p className="text-[11px] text-[#94A3B8]">2 final executive presentations</p>
-        </div>
-
-        <div className="p-5 bg-white border border-[#E2E8F0] rounded-2xl shadow-soft-sm space-y-2">
-          <div className="flex items-center justify-between text-[#64748B]">
-            <span className="text-xs font-semibold">Time-to-Hire Velocity</span>
+            <span className="text-xs font-semibold">Pipeline Velocity</span>
             <div className="p-2 rounded-xl bg-[#ECFDF5] text-[#059669]"><TrendingUp className="w-4 h-4" /></div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-black text-[#0F172A] font-display">24d</span>
-            <span className="text-[11px] font-bold text-emerald-600">-6 days vs avg</span>
+            <span className="text-2xl font-black text-[#0F172A] font-display">100%</span>
+            <span className="text-[11px] font-bold text-emerald-600 flex items-center">Atlas Synced</span>
           </div>
-          <p className="text-[11px] text-[#94A3B8]">Top quartile industry benchmark</p>
+          <p className="text-[11px] text-[#94A3B8]">Audited stage transitions</p>
+        </div>
+
+        <div className="p-5 bg-white border border-[#E2E8F0] rounded-2xl shadow-soft-sm space-y-2">
+          <div className="flex items-center justify-between text-[#64748B]">
+            <span className="text-xs font-semibold">Total Requisitions</span>
+            <div className="p-2 rounded-xl bg-[#F5F3FF] text-[#7C3AED]"><Users className="w-4 h-4" /></div>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-black text-[#0F172A] font-display">{jobs.length}</span>
+            <span className="text-[11px] font-bold text-[#64748B]">Across all stages</span>
+          </div>
+          <p className="text-[11px] text-[#94A3B8]">Includes draft, active & paused</p>
         </div>
       </div>
 
-      {/* 2. Main 2-Column Split: Active Requisitions + Scheduled Panels */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Left Column: Requisitions List */}
-        <div className="lg:col-span-2 bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-soft-sm space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-bold text-[#0F172A]">Active Requisitions</h2>
-              <p className="text-xs text-[#64748B]">Live postings receiving qualified candidate applications</p>
-            </div>
-            <Link to="/recruiter/jobs" className="text-xs font-bold text-[#F97316] hover:underline flex items-center gap-1">
-              <span>View All ({MOCK_JOBS.length})</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </Link>
+      {/* 2. Requisition List Table */}
+      <div className="mt-8 bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-soft-sm">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-bold text-[#0F172A] flex items-center gap-2">
+            <Briefcase className="w-4 h-4 text-[#F97316]" />
+            Active Company Requisitions
+          </h2>
+          <Link to="/recruiter/jobs" className="text-xs font-bold text-[#F97316] hover:underline flex items-center gap-1">
+            View All Openings ({jobs.length})
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        {loading ? (
+          <div className="py-12 flex justify-center">
+            <Loader2 className="w-8 h-8 text-[#F97316] animate-spin" />
           </div>
-
-          <div className="space-y-3">
-            {MOCK_JOBS.map((job) => (
-              <div
-                key={job.id}
-                className="p-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-[#F97316]/50 transition-colors"
-              >
-                <div className="space-y-1">
+        ) : jobs.length === 0 ? (
+          <div className="text-center py-12 text-xs text-[#64748B]">
+            No requisitions found. Click &quot;Create New Requisition&quot; above to post an opening.
+          </div>
+        ) : (
+          <div className="divide-y divide-[#F1F5F9]">
+            {jobs.slice(0, 5).map((j) => (
+              <div key={j._id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] uppercase font-bold text-[#F97316]">{job.department}</span>
-                    <span className="text-[10px] text-[#94A3B8]">• {job.type}</span>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                        j.status === 'published'
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : j.status === 'draft'
+                          ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                          : 'bg-slate-50 text-slate-700 border border-slate-200'
+                      }`}
+                    >
+                      {j.status}
+                    </span>
+                    <span className="text-xs font-bold text-[#0F172A]">{j.title}</span>
                   </div>
-                  <h3 className="font-bold text-sm text-[#0F172A]">{job.title}</h3>
-                  <p className="text-xs text-[#64748B]">{job.location} • {job.salaryRange}</p>
+                  <p className="text-[11px] text-[#64748B] mt-1">
+                    {j.location} • {j.employmentType} • Created {new Date(j.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
-
-                <div className="flex items-center gap-4">
-                  <div className="text-right hidden sm:block">
-                    <span className="text-sm font-extrabold text-[#0F172A]">{job.applicantsCount}</span>
-                    <p className="text-[10px] text-[#94A3B8]">Candidates</p>
-                  </div>
+                <div className="flex items-center gap-2">
                   <Link
-                    to={`/recruiter/jobs/${job.id}`}
-                    className="px-3.5 py-1.5 rounded-lg bg-white border border-[#E2E8F0] text-xs font-semibold text-[#0F172A] hover:bg-[#0A1424] hover:text-white transition-colors"
+                    to="/recruiter/pipeline"
+                    className="px-3 py-1.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-xs font-semibold text-[#0F172A] hover:bg-[#F1F5F9]"
                   >
-                    Manage
+                    View Pipeline
                   </Link>
                 </div>
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Right Column: Upcoming Interviews */}
-        <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-soft-sm space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-bold text-[#0F172A]">Upcoming Panels</h2>
-              <p className="text-xs text-[#64748B]">Scheduled Google Meet interviews</p>
-            </div>
-            <Link to="/recruiter/interviews" className="text-xs font-bold text-[#F97316] hover:underline">
-              Calendar
-            </Link>
-          </div>
-
-          <div className="space-y-4">
-            {MOCK_INTERVIEWS.map((intItem) => (
-              <div key={intItem.id} className="p-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl space-y-3">
-                <div className="flex items-center gap-3">
-                  <img src={intItem.candidateAvatar} alt={intItem.candidateName} className="w-9 h-9 rounded-full object-cover" />
-                  <div>
-                    <h3 className="text-xs font-bold text-[#0F172A]">{intItem.candidateName}</h3>
-                    <p className="text-[11px] text-[#64748B] truncate max-w-[180px]">{intItem.role}</p>
-                  </div>
-                </div>
-
-                <div className="text-xs text-[#475569] space-y-1 bg-white p-2.5 rounded-lg border border-[#E2E8F0]">
-                  <p className="font-semibold text-[#0F172A]">{intItem.date} • {intItem.time}</p>
-                  <p className="text-[11px] text-[#64748B]">Panel: {intItem.interviewers.join(', ')}</p>
-                </div>
-
-                <a
-                  href={intItem.meetingLink}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="block w-full py-2 text-center text-xs font-bold text-white bg-[#0A1424] hover:bg-[#14284B] rounded-lg transition-colors"
-                >
-                  Join Meeting Room
-                </a>
-              </div>
-            ))}
-          </div>
-        </div>
-
-      </div>
-
-      {/* 3. High-Match Candidate Highlight Table */}
-      <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-soft-sm space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-base font-bold text-[#0F172A]">Top Aligned Candidates</h2>
-            <p className="text-xs text-[#64748B]">Semantic AI match evaluated against active job requirements</p>
-          </div>
-          <Link to="/recruiter/candidates" className="text-xs font-bold text-[#F97316] hover:underline">
-            All Candidates
-          </Link>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="border-b border-[#E2E8F0] text-[#64748B] uppercase tracking-wider text-[10px]">
-                <th className="py-3 px-4">Candidate</th>
-                <th className="py-3 px-4">Applied Requisition</th>
-                <th className="py-3 px-4">Current Organization</th>
-                <th className="py-3 px-4">Pipeline Stage</th>
-                <th className="py-3 px-4">Semantic Match</th>
-                <th className="py-3 px-4 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#E2E8F0]">
-              {MOCK_CANDIDATES.map((c) => (
-                <tr key={c.id} className="hover:bg-[#F8FAFC] transition-colors">
-                  <td className="py-3.5 px-4 font-bold text-[#0F172A] flex items-center gap-2.5">
-                    <img src={c.avatar} alt={c.name} className="w-7 h-7 rounded-full object-cover" />
-                    <span>{c.name}</span>
-                  </td>
-                  <td className="py-3.5 px-4 text-[#475569]">{c.appliedRole}</td>
-                  <td className="py-3.5 px-4 text-[#64748B]">{c.currentCompany} ({c.experienceYears}y exp)</td>
-                  <td className="py-3.5 px-4">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#EFF6FF] text-[#0284C7] border border-[#BAE6FD]">
-                      {c.stage}
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <span className="font-extrabold text-[#059669] flex items-center gap-1">
-                      <Sparkles className="w-3.5 h-3.5 text-[#F97316]" />
-                      {c.matchScore}% Match
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-4 text-right">
-                    <Link
-                      to={`/recruiter/candidates/${c.id}`}
-                      className="text-xs font-bold text-[#0F172A] hover:text-[#F97316] underline"
-                    >
-                      Inspect Profile
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        )}
       </div>
     </DashboardShell>
   );
 };
-

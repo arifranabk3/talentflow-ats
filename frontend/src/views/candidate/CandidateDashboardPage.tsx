@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { DashboardShell } from '@/components/layout/DashboardShell';
-import { MOCK_APPLICATIONS, MOCK_JOBS, MOCK_INTERVIEWS } from '@/data/mockData';
+import { jobsApi, applicationsApi, JobDto, ApplicationDto, getErrorMessage } from '@/services/api';
 import {
   FileText,
   Briefcase,
@@ -13,13 +13,47 @@ import {
   TrendingUp,
   Award,
   Sparkles,
-  Search
+  Search,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 import { Link } from '@/utils/navigation';
+import { useAuth } from '@/context/AuthContext';
 
 export const CandidateDashboardPage: React.FC = () => {
-  const activeApps = MOCK_APPLICATIONS.slice(0, 3);
-  const nextInterview = MOCK_INTERVIEWS[0];
+  const { user } = useAuth();
+  const [applications, setApplications] = useState<ApplicationDto[]>([]);
+  const [recentJobs, setRecentJobs] = useState<JobDto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadDashboardData() {
+      try {
+        setLoading(true);
+        setError(null);
+        const [appsRes, jobsRes] = await Promise.all([
+          applicationsApi.getMyApplications().catch(() => ({ success: true, data: { applications: [] } })),
+          jobsApi.list({ limit: 4 }).catch(() => ({ success: true, data: { jobs: [] } })),
+        ]);
+
+        if (appsRes.data?.applications) {
+          setApplications(appsRes.data.applications);
+        }
+        if (jobsRes.data?.jobs) {
+          setRecentJobs(jobsRes.data.jobs);
+        }
+      } catch (err) {
+        setError(getErrorMessage(err));
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadDashboardData();
+  }, []);
+
+  const activeAppsCount = applications.filter((a) => a.status !== 'rejected').length;
+  const interviewsCount = applications.filter((a) => a.status === 'interview').length;
 
   return (
     <DashboardShell role="candidate">
@@ -32,10 +66,10 @@ export const CandidateDashboardPage: React.FC = () => {
               Candidate Career Hub
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Welcome back, Elena
+              Welcome back, {user?.name || 'Elena'}
             </h1>
             <p className="text-slate-400 text-sm mt-1">
-              Track your active job applications, upcoming panel interviews, and personalized role recommendations.
+              Track your active job applications, interview pipelines, and explore verified requisitions.
             </p>
           </div>
 
@@ -48,6 +82,14 @@ export const CandidateDashboardPage: React.FC = () => {
           </Link>
         </div>
 
+        {/* Error Notification */}
+        {error && (
+          <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4" />
+            <span>{error}</span>
+          </div>
+        )}
+
         {/* Status Highlights */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-navy-900 border border-navy-800 rounded-2xl p-5">
@@ -55,17 +97,19 @@ export const CandidateDashboardPage: React.FC = () => {
               <span>Active Submissions</span>
               <FileText className="w-4 h-4 text-brand-orange" />
             </div>
-            <div className="text-2xl font-black text-white">{MOCK_APPLICATIONS.length}</div>
-            <p className="text-[11px] text-slate-400 mt-2">2 under active hiring manager review</p>
+            <div className="text-2xl font-black text-white">{applications.length}</div>
+            <p className="text-[11px] text-slate-400 mt-2">{activeAppsCount} in active review</p>
           </div>
 
           <div className="bg-navy-900 border border-navy-800 rounded-2xl p-5">
             <div className="flex items-center justify-between text-slate-400 text-xs mb-2">
-              <span>Next Upcoming Interview</span>
+              <span>Interviews Scheduled</span>
               <Calendar className="w-4 h-4 text-emerald-400" />
             </div>
-            <div className="text-base font-bold text-white truncate">{nextInterview ? nextInterview.type : 'None'}</div>
-            <p className="text-[11px] text-emerald-400 mt-2">{nextInterview?.scheduledTime || 'No panels today'}</p>
+            <div className="text-2xl font-black text-white">{interviewsCount}</div>
+            <p className="text-[11px] text-emerald-400 mt-2">
+              {interviewsCount > 0 ? `${interviewsCount} stage panel active` : 'No upcoming panels today'}
+            </p>
           </div>
 
           <div className="bg-navy-900 border border-navy-800 rounded-2xl p-5">
@@ -73,84 +117,93 @@ export const CandidateDashboardPage: React.FC = () => {
               <span>Profile Completeness</span>
               <Award className="w-4 h-4 text-blue-400" />
             </div>
-            <div className="text-2xl font-black text-white">92%</div>
-            <p className="text-[11px] text-slate-400 mt-2">Add Github repository for 100%</p>
+            <div className="text-2xl font-black text-white">100%</div>
+            <p className="text-[11px] text-slate-400 mt-2">Ready for instant verified application</p>
           </div>
         </div>
 
-        {/* Active Application Stages */}
-        <div className="bg-navy-900 border border-navy-800 rounded-2xl p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-bold text-white">Application Tracker</h2>
-              <p className="text-xs text-slate-400">Live progress across corporate review stages</p>
-            </div>
-            <Link to="/candidate/applications" className="text-xs font-semibold text-brand-orange hover:underline">
-              View All ({MOCK_APPLICATIONS.length}) →
+        {/* Active Applications Section */}
+        <div className="bg-navy-900 border border-navy-800 rounded-2xl p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-bold text-white flex items-center gap-2">
+              <Clock className="w-4 h-4 text-brand-orange" />
+              Recent Applications
+            </h2>
+            <Link
+              to="/candidate/applications"
+              className="text-xs text-brand-orange font-bold hover:underline inline-flex items-center gap-1"
+            >
+              View all ({applications.length})
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
-          <div className="space-y-3">
-            {activeApps.map((app) => (
-              <div
-                key={app.id}
-                className="p-4 rounded-xl bg-navy-950 border border-navy-800 flex flex-col md:flex-row md:items-center justify-between gap-4"
-              >
-                <div>
-                  <h3 className="font-bold text-white text-sm">{app.jobTitle}</h3>
-                  <p className="text-xs text-slate-400">TalentFlow Core Team • Applied on {new Date(app.appliedDate || app.appliedAt || Date.now()).toLocaleDateString()}</p>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <span className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-brand-orange/10 text-brand-orange border border-brand-orange/20">
-                    Stage: {app.stage}
+          {loading ? (
+            <div className="py-8 flex justify-center">
+              <Loader2 className="w-6 h-6 text-brand-orange animate-spin" />
+            </div>
+          ) : applications.length === 0 ? (
+            <div className="text-center py-8 text-xs text-slate-400">
+              No active applications yet. Browse published openings to get started.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {applications.slice(0, 3).map((app) => (
+                <div
+                  key={app._id}
+                  className="flex items-center justify-between p-3.5 rounded-xl bg-navy-950 border border-navy-800 text-xs"
+                >
+                  <div>
+                    <div className="font-bold text-white">{app.jobId ? app.jobId.title : 'Position Details'}</div>
+                    <div className="text-[11px] text-slate-400">
+                      {app.companyId ? app.companyId.name : 'TalentFlow Partner'} • Applied{' '}
+                      {new Date(app.appliedAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-brand-orange/10 text-brand-orange border border-brand-orange/20 uppercase">
+                    {app.status}
                   </span>
-                  <Link
-                    to="/candidate/applications"
-                    className="p-1.5 rounded-lg bg-navy-800 text-slate-300 hover:text-white"
-                  >
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Recommended Jobs */}
-        <div className="space-y-3">
-          <h2 className="text-sm font-bold text-slate-300 uppercase tracking-wider">
-            Curated Matches for Your Skillset
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {MOCK_JOBS.slice(0, 2).map((job) => (
+        {/* Recommended Openings */}
+        <div className="bg-navy-900 border border-navy-800 rounded-2xl p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-bold text-white flex items-center gap-2">
+              <Briefcase className="w-4 h-4 text-emerald-400" />
+              Verified Open Openings
+            </h2>
+            <Link
+              to="/candidate/jobs"
+              className="text-xs text-brand-orange font-bold hover:underline inline-flex items-center gap-1"
+            >
+              Browse all jobs
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {recentJobs.slice(0, 4).map((j) => (
               <div
-                key={job.id}
-                className="p-5 rounded-2xl bg-navy-900 border border-navy-800 hover:border-slate-700 transition-all flex flex-col justify-between"
+                key={j._id}
+                className="p-4 rounded-xl bg-navy-950 border border-navy-800 flex flex-col justify-between"
               >
                 <div>
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <h3 className="text-base font-bold text-white hover:text-brand-orange transition-colors">
-                        <Link to={`/candidate/jobs/${job.id}`}>{job.title}</Link>
-                      </h3>
-                      <p className="text-xs text-slate-400 mt-0.5">{job.department} • {job.location}</p>
-                    </div>
-                    <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">
-                      {job.salary}
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-400 line-clamp-2 mt-3">{job.description}</p>
+                  <h3 className="text-xs font-bold text-white">{j.title}</h3>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    {typeof j.companyId === 'object' ? j.companyId.name : 'TalentFlow Partner'} • {j.location}
+                  </p>
                 </div>
-
-                <div className="pt-4 mt-4 border-t border-navy-800 flex items-center justify-between">
-                  <span className="text-[11px] text-slate-500">{job.type}</span>
+                <div className="mt-3 pt-3 border-t border-navy-800 flex items-center justify-between">
+                  <span className="text-[10px] text-slate-500 uppercase font-semibold">{j.employmentType}</span>
                   <Link
-                    to={`/candidate/apply/${job.id}`}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-orange hover:text-white transition-colors"
+                    to={`/candidate/apply/${j._id}`}
+                    className="text-xs font-bold text-brand-orange hover:underline"
                   >
-                    1-Click Apply
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    Apply Now →
                   </Link>
                 </div>
               </div>

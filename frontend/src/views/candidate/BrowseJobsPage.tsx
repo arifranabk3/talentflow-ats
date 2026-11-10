@@ -1,35 +1,54 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { DashboardShell } from '@/components/layout/DashboardShell';
-import { MOCK_JOBS } from '@/data/mockData';
+import { jobsApi, JobDto, getErrorMessage } from '@/services/api';
 import {
-  Briefcase,
   Search,
   MapPin,
   Building2,
   DollarSign,
-  Filter,
-  ArrowRight,
-  Clock,
-  Sparkles
+  Briefcase,
+  Sparkles,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 import { Link } from '@/utils/navigation';
 
 export const BrowseJobsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [departmentFilter, setDepartmentFilter] = useState('all');
-  const [typeFilter, setTypeFilter] = useState('all');
+  const [employmentType, setEmploymentType] = useState('all');
+  const [workplaceType, setWorkplaceType] = useState('all');
+  const [jobs, setJobs] = useState<JobDto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const filteredJobs = MOCK_JOBS.filter((j) => {
-    const matchesSearch =
-      j.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      j.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      j.location.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDept = departmentFilter === 'all' || j.department === departmentFilter;
-    const matchesType = typeFilter === 'all' || j.type === typeFilter;
-    return matchesSearch && matchesDept && matchesType;
-  });
+  const fetchJobs = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await jobsApi.list({
+        search: searchTerm || undefined,
+        employmentType: employmentType !== 'all' ? employmentType : undefined,
+        workplaceType: workplaceType !== 'all' ? workplaceType : undefined,
+        limit: 50,
+      });
+      if (res.success && res.data?.jobs) {
+        setJobs(res.data.jobs);
+      }
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [searchTerm, employmentType, workplaceType]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchJobs();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [fetchJobs]);
 
   return (
     <DashboardShell role="candidate">
@@ -49,112 +68,138 @@ export const BrowseJobsPage: React.FC = () => {
 
           {/* Search Inputs */}
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="relative sm:col-span-2">
+            <div className="relative sm:col-span-1">
               <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Job title, keywords, or tech stack (e.g. React, Kubernetes)..."
+                placeholder="Job title or skills (e.g. TypeScript, React)..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full bg-navy-950 border border-navy-700 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-orange"
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 sm:col-span-2">
               <select
-                value={departmentFilter}
-                onChange={(e) => setDepartmentFilter(e.target.value)}
+                value={employmentType}
+                onChange={(e) => setEmploymentType(e.target.value)}
                 className="flex-1 bg-navy-950 border border-navy-700 text-slate-300 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-brand-orange"
               >
-                <option value="all">All Departments</option>
-                <option value="Engineering">Engineering</option>
-                <option value="Product">Product</option>
-                <option value="Security">Security</option>
+                <option value="all">All Employment Types</option>
+                <option value="full-time">Full-time</option>
+                <option value="part-time">Part-time</option>
+                <option value="contract">Contract</option>
+                <option value="internship">Internship</option>
               </select>
               <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
+                value={workplaceType}
+                onChange={(e) => setWorkplaceType(e.target.value)}
                 className="flex-1 bg-navy-950 border border-navy-700 text-slate-300 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-brand-orange"
               >
-                <option value="all">All Types</option>
-                <option value="Full-time">Full-time</option>
-                <option value="Contract">Contract</option>
+                <option value="all">All Workplace Formats</option>
+                <option value="remote">Remote</option>
+                <option value="hybrid">Hybrid</option>
+                <option value="on-site">On-site</option>
               </select>
             </div>
           </div>
         </div>
 
-        {/* Results Counter */}
-        <div className="flex items-center justify-between text-xs text-slate-400 px-1">
-          <span>Showing <strong className="text-white">{filteredJobs.length}</strong> available positions</span>
-          <span>Updated today</span>
-        </div>
+        {/* Error Banner */}
+        {error && (
+          <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
 
-        {/* Job Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredJobs.map((job) => (
-            <div
-              key={job.id}
-              className="bg-navy-900 border border-navy-800 hover:border-slate-700 rounded-2xl p-6 transition-all flex flex-col justify-between group shadow-sm hover:shadow-lg"
-            >
-              <div>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <span className="text-[11px] font-semibold text-brand-orange uppercase tracking-wider">
-                      {job.department}
-                    </span>
-                    <h3 className="text-lg font-bold text-white group-hover:text-brand-orange transition-colors mt-0.5">
-                      <Link to={`/candidate/jobs/${job.id}`}>{job.title}</Link>
-                    </h3>
+        {/* Loading Skeleton */}
+        {loading && (
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="w-8 h-8 text-brand-orange animate-spin" />
+          </div>
+        )}
+
+        {/* Jobs List */}
+        {!loading && jobs.length === 0 && (
+          <div className="text-center py-16 bg-navy-900 border border-navy-800 rounded-2xl">
+            <Briefcase className="w-10 h-10 text-slate-500 mx-auto mb-3" />
+            <h3 className="text-base font-bold text-white">No published jobs found</h3>
+            <p className="text-xs text-slate-400 mt-1">Try adjusting your search terms or filters.</p>
+          </div>
+        )}
+
+        {!loading && jobs.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {jobs.map((job) => {
+              const companyName = typeof job.companyId === 'object' ? job.companyId.name : 'TalentFlow Partner';
+              const companyLoc = typeof job.companyId === 'object' ? job.companyId.location : job.location;
+              return (
+                <div
+                  key={job._id}
+                  className="bg-navy-900 border border-navy-800 hover:border-slate-700 rounded-2xl p-6 transition-all flex flex-col justify-between"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-orange/10 text-brand-orange border border-brand-orange/20 uppercase tracking-wide">
+                        {job.employmentType}
+                      </span>
+                      <span className="text-xs text-slate-400 capitalize">{job.workplaceType}</span>
+                    </div>
+
+                    <h2 className="text-lg font-bold text-white hover:text-brand-orange transition-colors">
+                      {job.title}
+                    </h2>
+
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
+                      <span className="flex items-center gap-1.5">
+                        <Building2 className="w-3.5 h-3.5 text-slate-500" />
+                        {companyName}
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-slate-500" />
+                        {job.location || companyLoc}
+                      </span>
+                      {job.salaryRange && (
+                        <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
+                          <DollarSign className="w-3.5 h-3.5" />
+                          ${job.salaryRange.min.toLocaleString()} - ${job.salaryRange.max.toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="text-xs text-slate-300 line-clamp-2">{job.description}</p>
+
+                    {job.skills && job.skills.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-2">
+                        {job.skills.slice(0, 4).map((s, idx) => (
+                          <span
+                            key={idx}
+                            className="px-2 py-0.5 rounded-md bg-navy-800 text-[11px] text-slate-300 border border-navy-700"
+                          >
+                            {s}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full whitespace-nowrap">
-                    {job.salary}
-                  </span>
-                </div>
 
-                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400 mt-3">
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-slate-500" />
-                    {job.location}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5 text-slate-500" />
-                    {job.type}
-                  </span>
-                </div>
-
-                <p className="text-xs text-slate-400 line-clamp-3 mt-3.5 leading-relaxed">
-                  {job.description}
-                </p>
-
-                <div className="flex flex-wrap gap-1.5 mt-4">
-                  {job.requirements.slice(0, 3).map((req, i) => (
-                    <span key={i} className="text-[11px] px-2.5 py-0.5 rounded-md bg-navy-950 border border-navy-800 text-slate-300">
-                      {req}
+                  <div className="pt-5 mt-5 border-t border-navy-800 flex items-center justify-between">
+                    <span className="text-[11px] text-slate-500">
+                      Posted {new Date(job.createdAt).toLocaleDateString()}
                     </span>
-                  ))}
+                    <Link
+                      to={`/candidate/apply/${job._id}`}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-orange text-white text-xs font-bold hover:bg-brand-orange-hover transition-all"
+                    >
+                      Apply Now
+                    </Link>
+                  </div>
                 </div>
-              </div>
-
-              <div className="pt-5 mt-5 border-t border-navy-800 flex items-center justify-between">
-                <Link
-                  to={`/candidate/jobs/${job.id}`}
-                  className="text-xs font-semibold text-slate-400 hover:text-white"
-                >
-                  View Details
-                </Link>
-                <Link
-                  to={`/candidate/apply/${job.id}`}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-bold transition-all shadow-md shadow-brand-orange/20"
-                >
-                  Apply Now
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </DashboardShell>
   );
 };
-
